@@ -6,26 +6,26 @@ import (
 	"strconv"
 )
 
-type RoleAggregate int
+type RollAggregate int
 
 const (
-	Sum = iota
+	Sum RollAggregate = iota
 	Max
 	Min
 )
 
-type RoleSignum int
+type RollSignum int
 
 const (
-	Positive = iota
+	Positive RollSignum = iota
 	Negative
 )
 
 type RollType struct {
 	Number    int
 	Dice      int
-	Aggregate RoleAggregate
-	Signum    RoleSignum
+	Aggregate RollAggregate
+	Signum    RollSignum
 	Exploding bool
 }
 
@@ -37,10 +37,10 @@ func (r RollType) Roll() (int, []int) {
 		individualRolls[i] = 0
 		if r.Exploding {
 			for individualRolls[i] = 0; individualRolls[i]%r.Dice == 0; {
-				individualRolls[i] += rand.IntN(r.Dice-1) + 1
+				individualRolls[i] += rand.IntN(r.Dice) + 1
 			}
 		} else {
-			individualRolls[i] += rand.IntN(r.Dice-1) + 1
+			individualRolls[i] += rand.IntN(r.Dice) + 1
 		}
 	}
 
@@ -87,7 +87,7 @@ func RollAll(rs []RollType) (int, [][]int) {
 }
 
 func ParseRoll(str string) []RollType {
-	r := regexp.MustCompile("([+-])?(min|max|sum)?([0-9])+d?([0-9]+)?(e)?")
+	r := regexp.MustCompile("([+-])?(min|max|sum)?([0-9]+)d?([0-9]+)?(e)?")
 
 	parsedRolls := r.FindAllStringSubmatch(str, -1)
 

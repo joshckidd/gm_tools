@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	tot, rolls := rolls.RollAll(rolls.ParseRoll("4d6+3d8"))
+	tot, rolls := rolls.RollAll(rolls.ParseRoll("min4d6+max3d8e"))
 	fmt.Printf("total: %d\n", tot)
 
 	for i, rs := range rolls {
