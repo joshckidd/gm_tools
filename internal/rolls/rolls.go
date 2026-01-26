@@ -29,18 +29,22 @@ type RollType struct {
 	Exploding bool
 }
 
-func (r RollType) Roll() (int, []int) {
+type RollResult struct {
+	Result          int
+	IndividualRolls []int
+}
+
+func (r RollType) Roll() RollResult {
 	var finalValue int
 	individualRolls := make([]int, r.Number)
 
 	for i := range r.Number {
-		individualRolls[i] = 0
 		if r.Exploding {
 			for individualRolls[i] = 0; individualRolls[i]%r.Dice == 0; {
 				individualRolls[i] += rand.IntN(r.Dice) + 1
 			}
 		} else {
-			individualRolls[i] += rand.IntN(r.Dice) + 1
+			individualRolls[i] = rand.IntN(r.Dice) + 1
 		}
 	}
 
@@ -70,16 +74,19 @@ func (r RollType) Roll() (int, []int) {
 		finalValue *= -1
 	}
 
-	return finalValue, individualRolls
+	return RollResult{
+		Result:          finalValue,
+		IndividualRolls: individualRolls,
+	}
 }
 
-func RollAll(rs []RollType) (int, [][]int) {
-	allRolls := make([][]int, len(rs))
+func RollAll(rs []RollType) (int, []RollResult) {
+	allRolls := make([]RollResult, len(rs))
 	res := 0
 
 	for i, r := range rs {
-		val, rolls := r.Roll()
-		res += val
+		rolls := r.Roll()
+		res += rolls.Result
 		allRolls[i] = rolls
 	}
 
