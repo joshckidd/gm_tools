@@ -22,16 +22,22 @@ const (
 )
 
 type RollType struct {
-	Number    int
-	Dice      int
-	Aggregate RollAggregate
-	Signum    RollSignum
-	Exploding bool
+	Number    int           `json:"number"`
+	Dice      int           `json:"dice"`
+	Aggregate RollAggregate `json:"aggregate"`
+	Signum    RollSignum    `json:"signum"`
+	Exploding bool          `json:"exploding"`
 }
 
 type RollResult struct {
-	Result          int
-	IndividualRolls []int
+	Type            RollType `json:"type"`
+	Result          int      `json:"result"`
+	IndividualRolls []int    `json:"individual_rolls"`
+}
+
+type RollTotalResult struct {
+	TotalResult       int          `json:"total_result"`
+	IndividualResults []RollResult `json:"individual_results"`
 }
 
 func (r RollType) Roll() RollResult {
@@ -75,12 +81,13 @@ func (r RollType) Roll() RollResult {
 	}
 
 	return RollResult{
+		Type:            r,
 		Result:          finalValue,
 		IndividualRolls: individualRolls,
 	}
 }
 
-func RollAll(rs []RollType) (int, []RollResult) {
+func RollAll(rs []RollType) RollTotalResult {
 	allRolls := make([]RollResult, len(rs))
 	res := 0
 
@@ -90,7 +97,10 @@ func RollAll(rs []RollType) (int, []RollResult) {
 		allRolls[i] = rolls
 	}
 
-	return res, allRolls
+	return RollTotalResult{
+		TotalResult:       res,
+		IndividualResults: allRolls,
+	}
 }
 
 func ParseRoll(str string) []RollType {
