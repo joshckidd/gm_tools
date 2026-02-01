@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/joshckidd/gm_tools/internal/requests"
+	"github.com/joshckidd/gm_tools/internal/responses"
 
 	_ "github.com/lib/pq"
 )
@@ -16,7 +16,7 @@ func main() {
 		Addr:    ":8080",
 	}
 
-	serveMux.HandleFunc("GET /api", requests.GetRoll)
+	serveMux.HandleFunc("GET /api", responses.GetRoll)
 
 	server.ListenAndServe()
 }
