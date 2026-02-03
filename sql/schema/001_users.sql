@@ -7,4 +7,5 @@ CREATE TABLE users (
     ,hashed_password TEXT NOT NULL
 );
 
--- +goose D
+-- +goose Down
+DROP TABLE users;
