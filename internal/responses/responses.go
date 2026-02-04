@@ -2,6 +2,7 @@ package responses
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/joshckidd/gm_tools/internal/auth"
 	"github.com/joshckidd/gm_tools/internal/database"
@@ -24,7 +25,7 @@ func GetRoll(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *ApiConfig) PostUser(w http.ResponseWriter, r *http.Request) {
 	type userParam struct {
-		Email    string `json:"email"`
+		Username string `json:"username"`
 		Password string `json:"password"`
 	}
 
@@ -44,21 +45,23 @@ func (cfg *ApiConfig) PostUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := database.CreateUserParams{
-		Email:          inParams.Email,
+		Username:       inParams.Username,
 		HashedPassword: hashedPassword,
 	}
 
 	user, err := cfg.DB.CreateUser(r.Context(), params)
-	if err != nil {
+	if err.Error() == "pq: duplicate key value violates unique constraint \"users_pkey\"" {
+		respondWithError(w, 409, fmt.Sprintf("%s is already in use as a username. Please select another.", inParams.Username))
+		return
+	} else if err != nil {
 		respondWithError(w, 500, err.Error())
 		return
 	}
 
 	respondWithJSON(w, 201, database.User{
-		ID:        user.ID,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
-		Email:     user.Email,
+		Username:  user.Username,
 	})
 }
 

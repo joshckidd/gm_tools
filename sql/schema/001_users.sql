@@ -1,9 +1,8 @@
 -- +goose Up
 CREATE TABLE users (
-    id UUID NOT NULL PRIMARY KEY
+    username TEXT NOT NULL PRIMARY KEY
     ,created_at TIMESTAMP NOT NULL
     ,updated_at TIMESTAMP NOT NULL
-    ,email TEXT NOT NULL
     ,hashed_password TEXT NOT NULL
 );
 
