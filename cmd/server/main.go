@@ -16,6 +16,7 @@ import (
 func main() {
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
+
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		fmt.Println("Database error.")
@@ -32,8 +33,10 @@ func main() {
 
 	var apiCfg responses.ApiConfig
 	apiCfg.DB = dbQueries
+	apiCfg.TokenSecret = os.Getenv("SECRET")
 	serveMux.HandleFunc("GET /api", responses.GetRoll)
 	serveMux.HandleFunc("POST /api/users", apiCfg.PostUser)
+	serveMux.HandleFunc("POST /api/login", apiCfg.UserLogin)
 
 	server.ListenAndServe()
 }
