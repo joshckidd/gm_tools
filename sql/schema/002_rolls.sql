@@ -5,6 +5,7 @@ CREATE TABLE aggregate_rolls (
     ,updated_at TIMESTAMP NOT NULL
     ,string TEXT NOT NULL
     ,result INT NOT NULL
+    ,username TEXT NOT NULL REFERENCES users ON DELETE CASCADE
 );
 
 CREATE TABLE rolls (
@@ -15,6 +16,7 @@ CREATE TABLE rolls (
     ,result INT NOT NULL
     ,individual_rolls TEXT NOT NULL
     ,aggregate_roll_id UUID NOT NULL REFERENCES aggregate_rolls ON DELETE CASCADE
+    ,username TEXT NOT NULL REFERENCES users ON DELETE CASCADE
 );
 
 -- +goose Down

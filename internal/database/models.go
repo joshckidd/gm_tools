@@ -6,7 +6,27 @@ package database
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
+
+type AggregateRoll struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	String    string    `json:"string"`
+	Result    int32     `json:"result"`
+}
+
+type Roll struct {
+	ID              uuid.UUID `json:"id"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	String          string    `json:"string"`
+	Result          int32     `json:"result"`
+	IndividualRolls string    `json:"individual_rolls"`
+	AggregateRollID uuid.UUID `json:"aggregate_roll_id"`
+}
 
 type User struct {
 	Username       string    `json:"username"`
