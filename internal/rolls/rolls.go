@@ -1,6 +1,7 @@
 package rolls
 
 import (
+	"fmt"
 	"math/rand/v2"
 	"regexp"
 	"strconv"
@@ -31,6 +32,7 @@ type RollType struct {
 
 type RollResult struct {
 	Type            RollType `json:"type"`
+	RollString      string   `json:"roll_string"`
 	Result          int      `json:"result"`
 	IndividualRolls []int    `json:"individual_rolls"`
 }
@@ -84,7 +86,33 @@ func (r RollType) Roll() RollResult {
 		Type:            r,
 		Result:          finalValue,
 		IndividualRolls: individualRolls,
+		RollString:      r.GetRollString(),
 	}
+}
+
+func (r RollType) GetRollString() string {
+	var s, a, e string
+	switch r.Signum {
+	case Negative:
+		s = "-"
+	default:
+		s = ""
+	}
+	switch r.Aggregate {
+	case Min:
+		a = "min"
+	case Max:
+		a = "max"
+	default:
+		a = ""
+	}
+	switch r.Exploding {
+	case true:
+		e = "e"
+	default:
+		e = ""
+	}
+	return fmt.Sprintf("%s%s%dd%d%s", s, a, r.Number, r.Dice, e)
 }
 
 func RollAll(rs []RollType) RollTotalResult {
