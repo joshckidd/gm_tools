@@ -17,22 +17,42 @@ type ApiConfig struct {
 	TokenSecret string
 }
 
-func GetRoll(w http.ResponseWriter, r *http.Request) {
-	rollString := r.URL.Query().Get("roll")
+func (cfg *ApiConfig) PostRoll(w http.ResponseWriter, r *http.Request) {
+	tok, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
 
-	tot := rolls.RollAll(rolls.ParseRoll(rollString))
+	_, err = auth.ValidateJWT(tok, cfg.TokenSecret)
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	inParams := struct {
+		Roll string `json:"roll"`
+	}{}
+
+	err = decoder.Decode(&inParams)
+	if err != nil {
+		respondWithError(w, 500, "Invalid request")
+		return
+	}
+
+	tot := rolls.RollAll(rolls.ParseRoll(inParams.Roll))
+	tot.RollString = inParams.Roll
 
 	respondWithJSON(w, 200, tot)
 }
 
 func (cfg *ApiConfig) PostUser(w http.ResponseWriter, r *http.Request) {
-	type userParam struct {
+	decoder := json.NewDecoder(r.Body)
+	inParams := struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
-	}
-
-	decoder := json.NewDecoder(r.Body)
-	inParams := userParam{}
+	}{}
 
 	err := decoder.Decode(&inParams)
 	if err != nil {
@@ -46,12 +66,10 @@ func (cfg *ApiConfig) PostUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := database.CreateUserParams{
+	user, err := cfg.DB.CreateUser(r.Context(), database.CreateUserParams{
 		Username:       inParams.Username,
 		HashedPassword: hashedPassword,
-	}
-
-	user, err := cfg.DB.CreateUser(r.Context(), params)
+	})
 	if err.Error() == "pq: duplicate key value violates unique constraint \"users_pkey\"" {
 		respondWithError(w, 409, fmt.Sprintf("%s is already in use as a username. Please select another.", inParams.Username))
 		return

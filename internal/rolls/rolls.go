@@ -40,6 +40,7 @@ type RollResult struct {
 type RollTotalResult struct {
 	TotalResult       int          `json:"total_result"`
 	IndividualResults []RollResult `json:"individual_results"`
+	RollString        string       `json:"roll_string"`
 }
 
 func (r RollType) Roll() RollResult {
