@@ -16,6 +16,7 @@ type AggregateRoll struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	String    string    `json:"string"`
 	Result    int32     `json:"result"`
+	Username  string    `json:"username"`
 }
 
 type Roll struct {
@@ -26,6 +27,7 @@ type Roll struct {
 	Result          int32     `json:"result"`
 	IndividualRolls string    `json:"individual_rolls"`
 	AggregateRollID uuid.UUID `json:"aggregate_roll_id"`
+	Username        string    `json:"username"`
 }
 
 type User struct {

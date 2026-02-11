@@ -24,7 +24,7 @@ func (cfg *ApiConfig) PostRoll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = auth.ValidateJWT(tok, cfg.TokenSecret)
+	user, err := auth.ValidateJWT(tok, cfg.TokenSecret)
 	if err != nil {
 		respondWithError(w, 500, err.Error())
 		return
@@ -43,6 +43,30 @@ func (cfg *ApiConfig) PostRoll(w http.ResponseWriter, r *http.Request) {
 
 	tot := rolls.RollAll(rolls.ParseRoll(inParams.Roll))
 	tot.RollString = inParams.Roll
+
+	aggRoll, err := cfg.DB.CreateAggregateRoll(r.Context(), database.CreateAggregateRollParams{
+		Result:   int32(tot.TotalResult),
+		String:   tot.RollString,
+		Username: user,
+	})
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	for i := range tot.IndividualResults {
+		_, err = cfg.DB.CreateRoll(r.Context(), database.CreateRollParams{
+			String:          tot.IndividualResults[i].RollString,
+			Result:          int32(tot.IndividualResults[i].Result),
+			AggregateRollID: aggRoll.ID,
+			Username:        user,
+			IndividualRolls: fmt.Sprint(tot.IndividualResults[i].IndividualRolls),
+		})
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+	}
 
 	respondWithJSON(w, 200, tot)
 }

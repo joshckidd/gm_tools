@@ -12,24 +12,26 @@ import (
 )
 
 const createAggregateRoll = `-- name: CreateAggregateRoll :one
-INSERT INTO aggregate_rolls (id, created_at, updated_at, string, result)
+INSERT INTO aggregate_rolls (id, created_at, updated_at, string, result, username)
 VALUES (
     gen_random_uuid()
     ,NOW()
     ,NOW()
     ,$1
     ,$2
+    ,$3
 )
-RETURNING id, created_at, updated_at, string, result
+RETURNING id, created_at, updated_at, string, result, username
 `
 
 type CreateAggregateRollParams struct {
-	String string `json:"string"`
-	Result int32  `json:"result"`
+	String   string `json:"string"`
+	Result   int32  `json:"result"`
+	Username string `json:"username"`
 }
 
 func (q *Queries) CreateAggregateRoll(ctx context.Context, arg CreateAggregateRollParams) (AggregateRoll, error) {
-	row := q.db.QueryRowContext(ctx, createAggregateRoll, arg.String, arg.Result)
+	row := q.db.QueryRowContext(ctx, createAggregateRoll, arg.String, arg.Result, arg.Username)
 	var i AggregateRoll
 	err := row.Scan(
 		&i.ID,
@@ -37,12 +39,13 @@ func (q *Queries) CreateAggregateRoll(ctx context.Context, arg CreateAggregateRo
 		&i.UpdatedAt,
 		&i.String,
 		&i.Result,
+		&i.Username,
 	)
 	return i, err
 }
 
 const createRoll = `-- name: CreateRoll :one
-INSERT INTO rolls (id, created_at, updated_at, string, result, individual_rolls, aggregate_roll_id)
+INSERT INTO rolls (id, created_at, updated_at, string, result, individual_rolls, aggregate_roll_id, username)
 VALUES (
     gen_random_uuid()
     ,NOW()
@@ -51,8 +54,9 @@ VALUES (
     ,$2
     ,$3
     ,$4
+    ,$5
 )
-RETURNING id, created_at, updated_at, string, result, individual_rolls, aggregate_roll_id
+RETURNING id, created_at, updated_at, string, result, individual_rolls, aggregate_roll_id, username
 `
 
 type CreateRollParams struct {
@@ -60,6 +64,7 @@ type CreateRollParams struct {
 	Result          int32     `json:"result"`
 	IndividualRolls string    `json:"individual_rolls"`
 	AggregateRollID uuid.UUID `json:"aggregate_roll_id"`
+	Username        string    `json:"username"`
 }
 
 func (q *Queries) CreateRoll(ctx context.Context, arg CreateRollParams) (Roll, error) {
@@ -68,6 +73,7 @@ func (q *Queries) CreateRoll(ctx context.Context, arg CreateRollParams) (Roll, e
 		arg.Result,
 		arg.IndividualRolls,
 		arg.AggregateRollID,
+		arg.Username,
 	)
 	var i Roll
 	err := row.Scan(
@@ -78,6 +84,7 @@ func (q *Queries) CreateRoll(ctx context.Context, arg CreateRollParams) (Roll, e
 		&i.Result,
 		&i.IndividualRolls,
 		&i.AggregateRollID,
+		&i.Username,
 	)
 	return i, err
 }

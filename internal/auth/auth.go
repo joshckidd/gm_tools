@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -53,7 +52,6 @@ func ValidateJWT(tokenString, tokenSecret string) (string, error) {
 
 func GetBearerToken(headers http.Header) (string, error) {
 	res := strings.Split(headers.Get("Authorization"), " ")
-	fmt.Println(res)
 	if len(res) == 2 && res[0] == "Bearer" {
 		return res[1], nil
 	}
