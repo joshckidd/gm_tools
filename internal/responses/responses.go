@@ -17,25 +17,31 @@ type ApiConfig struct {
 	TokenSecret string
 }
 
-func (cfg *ApiConfig) PostRoll(w http.ResponseWriter, r *http.Request) {
-	tok, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		respondWithError(w, 500, err.Error())
-		return
-	}
+func (cfg *ApiConfig) ApiLogin(handler func(http.ResponseWriter, *http.Request, string, *ApiConfig)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tok, err := auth.GetBearerToken(r.Header)
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
 
-	user, err := auth.ValidateJWT(tok, cfg.TokenSecret)
-	if err != nil {
-		respondWithError(w, 500, err.Error())
-		return
-	}
+		user, err := auth.ValidateJWT(tok, cfg.TokenSecret)
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
 
+		handler(w, r, user, cfg)
+	}
+}
+
+func PostRoll(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	decoder := json.NewDecoder(r.Body)
 	inParams := struct {
 		Roll string `json:"roll"`
 	}{}
 
-	err = decoder.Decode(&inParams)
+	err := decoder.Decode(&inParams)
 	if err != nil {
 		respondWithError(w, 500, "Invalid request")
 		return

@@ -34,7 +34,7 @@ func main() {
 	var apiCfg responses.ApiConfig
 	apiCfg.DB = dbQueries
 	apiCfg.TokenSecret = os.Getenv("SECRET")
-	serveMux.HandleFunc("POST /api/rolls", apiCfg.PostRoll)
+	serveMux.HandleFunc("POST /api/rolls", apiCfg.ApiLogin(responses.PostRoll))
 	serveMux.HandleFunc("POST /api/users", apiCfg.PostUser)
 	serveMux.HandleFunc("POST /api/login", apiCfg.UserLogin)
 
