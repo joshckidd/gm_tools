@@ -88,3 +88,77 @@ func (q *Queries) CreateRoll(ctx context.Context, arg CreateRollParams) (Roll, e
 	)
 	return i, err
 }
+
+const getAggregateRolls = `-- name: GetAggregateRolls :many
+SELECT id, created_at, updated_at, string, result, username
+FROM aggregate_rolls
+WHERE username = $1
+`
+
+func (q *Queries) GetAggregateRolls(ctx context.Context, username string) ([]AggregateRoll, error) {
+	rows, err := q.db.QueryContext(ctx, getAggregateRolls, username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AggregateRoll
+	for rows.Next() {
+		var i AggregateRoll
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.String,
+			&i.Result,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getRolls = `-- name: GetRolls :many
+SELECT id, created_at, updated_at, string, result, individual_rolls, aggregate_roll_id, username
+FROM rolls
+WHERE aggregate_roll_id = $1
+`
+
+func (q *Queries) GetRolls(ctx context.Context, aggregateRollID uuid.UUID) ([]Roll, error) {
+	rows, err := q.db.QueryContext(ctx, getRolls, aggregateRollID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Roll
+	for rows.Next() {
+		var i Roll
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.String,
+			&i.Result,
+			&i.IndividualRolls,
+			&i.AggregateRollID,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

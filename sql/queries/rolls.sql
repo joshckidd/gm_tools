@@ -23,3 +23,13 @@ VALUES (
     ,$5
 )
 RETURNING id, created_at, updated_at, string, result, individual_rolls, aggregate_roll_id, username;
+
+-- name: GetAggregateRolls :many
+SELECT *
+FROM aggregate_rolls
+WHERE username = $1;
+
+-- name: GetRolls :many
+SELECT *
+FROM rolls
+WHERE aggregate_roll_id = $1;
