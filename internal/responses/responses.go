@@ -3,6 +3,8 @@ package responses
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joshckidd/gm_tools/internal/auth"
@@ -75,6 +77,44 @@ func PostRoll(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 	}
 
 	respondWithJSON(w, 200, tot)
+}
+
+func GetRolls(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	userAggregateRolls, err := cfg.DB.GetAggregateRolls(r.Context(), user)
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	res := make([]rolls.RollTotalResult, len(userAggregateRolls))
+
+	for i := range userAggregateRolls {
+		userRolls, err := cfg.DB.GetRolls(r.Context(), userAggregateRolls[i].ID)
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+
+		resParts := make([]rolls.RollResult, len(userRolls))
+
+		for j := range userRolls {
+			resParts[j].Type = rolls.ParseRoll(userRolls[j].String)[0]
+			resParts[j].RollString = userRolls[j].String
+			resParts[j].Result = int(userRolls[j].Result)
+			ss := strings.Split(strings.Trim(userRolls[j].IndividualRolls, "[]"), " ")
+			is := make([]int, len(ss))
+			for k, s := range ss {
+				is[k], _ = strconv.Atoi(s)
+			}
+			resParts[j].IndividualRolls = is
+		}
+
+		res[i].TotalResult = int(userAggregateRolls[i].Result)
+		res[i].RollString = userAggregateRolls[i].String
+		res[i].IndividualResults = resParts
+	}
+
+	respondWithJSON(w, 200, res)
 }
 
 func (cfg *ApiConfig) PostUser(w http.ResponseWriter, r *http.Request) {
