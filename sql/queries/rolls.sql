@@ -33,3 +33,7 @@ WHERE username = $1;
 SELECT *
 FROM rolls
 WHERE aggregate_roll_id = $1;
+
+-- name: DeleteOldRolls :exec
+DELETE FROM aggregate_rolls
+WHERE created_at < $1;

@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -87,6 +88,16 @@ func (q *Queries) CreateRoll(ctx context.Context, arg CreateRollParams) (Roll, e
 		&i.Username,
 	)
 	return i, err
+}
+
+const deleteOldRolls = `-- name: DeleteOldRolls :exec
+DELETE FROM aggregate_rolls
+WHERE created_at < $1
+`
+
+func (q *Queries) DeleteOldRolls(ctx context.Context, createdAt time.Time) error {
+	_, err := q.db.ExecContext(ctx, deleteOldRolls, createdAt)
+	return err
 }
 
 const getAggregateRolls = `-- name: GetAggregateRolls :many
