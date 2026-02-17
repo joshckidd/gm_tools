@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/joshckidd/gm_tools/internal/database"
@@ -16,6 +19,8 @@ import (
 func main() {
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
+	checkMinutes, _ := strconv.Atoi(os.Getenv("CHECK_MINUTES"))
+	keepRollDays, _ := strconv.Atoi(os.Getenv("KEEP_ROLL_DAYS"))
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -24,6 +29,17 @@ func main() {
 	}
 
 	dbQueries := database.New(db)
+
+	ticker := time.NewTicker(time.Minute * time.Duration(checkMinutes))
+
+	go func() error {
+		for ; ; <-ticker.C {
+			err = dbQueries.DeleteOldRolls(context.Background(), time.Now().Add(time.Duration(-keepRollDays)*24*time.Hour))
+			if err != nil {
+				return err
+			}
+		}
+	}()
 
 	serveMux := http.NewServeMux()
 	server := http.Server{
