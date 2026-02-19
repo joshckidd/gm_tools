@@ -4,24 +4,39 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/joshckidd/gm_tools/internal/requests"
+	"github.com/joshckidd/gm_tools/internal/cli"
+	"github.com/joshckidd/gm_tools/internal/config"
 )
 
 func main() {
+	c, err := config.Read()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var s cli.State
+	s.Cfg = &c
+
+	cliCommands := cli.Commands{
+		CommandMap: map[string]func(*cli.State, cli.Command) error{},
+	}
+
+	cliCommands.Register("roll", cli.HandlerRoll)
+
 	args := os.Args
 	if len(args) < 2 {
 		fmt.Println("I require an argument!")
-		os.Exit(0)
+		os.Exit(1)
 	}
 
-	tot, _ := requests.GenerateRoll(args[1])
-	fmt.Printf("total: %d\n", tot.TotalResult)
+	cmd := cli.Command{
+		Name: args[1],
+		Args: args[2:],
+	}
 
-	for i, rs := range tot.IndividualResults {
-		fmt.Printf(" - Roll set %d: %d\n", i, rs.Result)
-
-		for j, r := range rs.IndividualRolls {
-			fmt.Printf(" --- Roll %d: %d\n", j, r)
-		}
+	err = cliCommands.Run(&s, cmd)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
