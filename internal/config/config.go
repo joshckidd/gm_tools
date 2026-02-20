@@ -8,33 +8,33 @@ import (
 
 const configFileName = ".gm-tools.json"
 
-type Config struct {
+type CliConfig struct {
 	APIUrl           string `json:"api_url"`
 	CurrentUserToken string `json:"current_user_token"`
 }
 
-func Read() (Config, error) {
-	var config Config
+func Read() (CliConfig, error) {
+	var config CliConfig
 
 	configFile, err := getConfigFilePath()
 	if err != nil {
-		return Config{}, err
+		return CliConfig{}, err
 	}
 
 	configJson, err := os.ReadFile(configFile)
 	if err != nil {
-		return Config{}, err
+		return CliConfig{}, err
 	}
 
 	err = json.Unmarshal(configJson, &config)
 	if err != nil {
-		return Config{}, err
+		return CliConfig{}, err
 	}
 
 	return config, nil
 }
 
-func (config Config) SetToken() error {
+func (config CliConfig) SetToken() error {
 	configFile, err := getConfigFilePath()
 	if err != nil {
 		return err

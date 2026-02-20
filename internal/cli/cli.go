@@ -9,7 +9,7 @@ import (
 )
 
 type State struct {
-	Cfg *config.Config
+	Cfg *config.CliConfig
 }
 
 type Command struct {
@@ -35,7 +35,7 @@ func (c *Commands) Run(s *State, cmd Command) error {
 }
 
 func HandlerRoll(s *State, cmd Command) error {
-	tot, err := requests.GenerateRoll(cmd.Args[0])
+	tot, err := requests.GenerateRoll(*s.Cfg, cmd.Args[0])
 	if err != nil {
 		return err
 	}
