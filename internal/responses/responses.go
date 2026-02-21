@@ -201,7 +201,7 @@ func (cfg *ApiConfig) UserLogin(w http.ResponseWriter, r *http.Request) {
 	respondWithError(w, 401, "Incorrect email or password")
 }
 
-func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+func respondWithJSON(w http.ResponseWriter, code int, payload any) {
 	val, err := json.Marshal(payload)
 	if err != nil {
 		respondWithError(w, 500, err.Error())

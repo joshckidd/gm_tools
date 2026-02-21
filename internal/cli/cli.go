@@ -35,7 +35,7 @@ func (c *Commands) Run(s *State, cmd Command) error {
 }
 
 func HandlerRoll(s *State, cmd Command) error {
-	tot, err := requests.GenerateRoll(*s.Cfg, cmd.Args[0])
+	tot, err := requests.GenerateRoll(s.Cfg, cmd.Args[0])
 	if err != nil {
 		return err
 	}
@@ -49,5 +49,23 @@ func HandlerRoll(s *State, cmd Command) error {
 			fmt.Printf(" --- Roll %d: %d\n", j, r)
 		}
 	}
+	return nil
+}
+
+func HandlerLogin(s *State, cmd Command) error {
+	if len(cmd.Args) < 2 {
+		return errors.New("Login command requires two arguments: username, password")
+	}
+
+	err := requests.LoginUser(s.Cfg, cmd.Args[0], cmd.Args[1])
+	if err != nil {
+		return err
+	}
+
+	err = s.Cfg.SetToken()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

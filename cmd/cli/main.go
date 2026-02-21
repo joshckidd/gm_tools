@@ -22,9 +22,10 @@ func main() {
 	}
 
 	cliCommands.Register("roll", cli.HandlerRoll)
+	cliCommands.Register("login", cli.HandlerLogin)
 
 	args := os.Args
-	if len(args) < 2 {
+	if len(args) < 3 {
 		fmt.Println("I require an argument!")
 		os.Exit(1)
 	}
