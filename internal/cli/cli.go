@@ -6,6 +6,7 @@ import (
 
 	"github.com/joshckidd/gm_tools/internal/config"
 	"github.com/joshckidd/gm_tools/internal/requests"
+	"github.com/joshckidd/gm_tools/internal/rolls"
 )
 
 type State struct {
@@ -40,15 +41,20 @@ func HandlerRoll(s *State, cmd Command) error {
 		return err
 	}
 
-	fmt.Printf("total: %d\n", tot.TotalResult)
+	printRoll(tot)
 
-	for i, rs := range tot.IndividualResults {
-		fmt.Printf(" - Roll set %d: %d\n", i, rs.Result)
+	return nil
+}
 
-		for j, r := range rs.IndividualRolls {
-			fmt.Printf(" --- Roll %d: %d\n", j, r)
+func HandlerList(s *State, cmd Command) error {
+	switch cmd.Args[0] {
+	case "rolls":
+		err := listRolls(s.Cfg)
+		if err != nil {
+			return err
 		}
 	}
+
 	return nil
 }
 
@@ -65,6 +71,32 @@ func HandlerLogin(s *State, cmd Command) error {
 	err = s.Cfg.SetToken()
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func printRoll(tot rolls.RollTotalResult) {
+	fmt.Printf("total: %d\n", tot.TotalResult)
+
+	for i, rs := range tot.IndividualResults {
+		fmt.Printf(" - Roll set %d: %d\n", i, rs.Result)
+
+		for j, r := range rs.IndividualRolls {
+			fmt.Printf(" --- Roll %d: %d\n", j, r)
+		}
+	}
+}
+
+func listRolls(cfg *config.CliConfig) error {
+	rolls, err := requests.GetRolls(cfg)
+	if err != nil {
+		return err
+	}
+
+	for i := range rolls {
+		fmt.Printf("Roll %d - %s:\n", i+1, rolls[i].RollString)
+		printRoll(rolls[i])
 	}
 
 	return nil

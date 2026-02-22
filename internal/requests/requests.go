@@ -31,6 +31,20 @@ func GenerateRoll(cfg *config.CliConfig, rollString string) (rolls.RollTotalResu
 	return rollResult, nil
 }
 
+func GetRolls(cfg *config.CliConfig) ([]rolls.RollTotalResult, error) {
+	body, err := sendRequest(*cfg, "rolls", "GET", "")
+	if err != nil {
+		return []rolls.RollTotalResult{}, err
+	}
+
+	var rollResult []rolls.RollTotalResult
+	err = json.Unmarshal(body, &rollResult)
+	if err != nil {
+		return []rolls.RollTotalResult{}, err
+	}
+	return rollResult, nil
+}
+
 func LoginUser(cfg *config.CliConfig, username, password string) error {
 	body, err := sendRequest(*cfg, "login", "POST", map[string]string{
 		"username": username,

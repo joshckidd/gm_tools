@@ -104,6 +104,7 @@ const getAggregateRolls = `-- name: GetAggregateRolls :many
 SELECT id, created_at, updated_at, string, result, username
 FROM aggregate_rolls
 WHERE username = $1
+ORDER BY created_at
 `
 
 func (q *Queries) GetAggregateRolls(ctx context.Context, username string) ([]AggregateRoll, error) {

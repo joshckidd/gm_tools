@@ -27,7 +27,8 @@ RETURNING id, created_at, updated_at, string, result, individual_rolls, aggregat
 -- name: GetAggregateRolls :many
 SELECT *
 FROM aggregate_rolls
-WHERE username = $1;
+WHERE username = $1
+ORDER BY created_at;
 
 -- name: GetRolls :many
 SELECT *

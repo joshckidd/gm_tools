@@ -23,6 +23,7 @@ func main() {
 
 	cliCommands.Register("roll", cli.HandlerRoll)
 	cliCommands.Register("login", cli.HandlerLogin)
+	cliCommands.Register("list", cli.HandlerList)
 
 	args := os.Args
 	if len(args) < 3 {
