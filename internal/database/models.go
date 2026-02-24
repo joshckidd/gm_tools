@@ -19,6 +19,36 @@ type AggregateRoll struct {
 	Username  string    `json:"username"`
 }
 
+type CustomField struct {
+	ID              uuid.UUID `json:"id"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	CustomFieldName string    `json:"custom_field_name"`
+	CustomFieldType string    `json:"custom_field_type"`
+	TypeID          uuid.UUID `json:"type_id"`
+	Username        string    `json:"username"`
+}
+
+type CustomFieldValue struct {
+	ID               uuid.UUID `json:"id"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+	CustomFieldValue string    `json:"custom_field_value"`
+	TypeID           uuid.UUID `json:"type_id"`
+	CustomFieldID    uuid.UUID `json:"custom_field_id"`
+	Username         string    `json:"username"`
+}
+
+type Item struct {
+	ID              uuid.UUID `json:"id"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	ItemName        string    `json:"item_name"`
+	ItemDescription string    `json:"item_description"`
+	TypeID          uuid.UUID `json:"type_id"`
+	Username        string    `json:"username"`
+}
+
 type Roll struct {
 	ID              uuid.UUID `json:"id"`
 	CreatedAt       time.Time `json:"created_at"`
@@ -28,6 +58,14 @@ type Roll struct {
 	IndividualRolls string    `json:"individual_rolls"`
 	AggregateRollID uuid.UUID `json:"aggregate_roll_id"`
 	Username        string    `json:"username"`
+}
+
+type Type struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	TypeName  string    `json:"type_name"`
+	Username  string    `json:"username"`
 }
 
 type User struct {
