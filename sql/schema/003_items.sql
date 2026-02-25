@@ -3,7 +3,7 @@ CREATE TABLE types (
     id UUID NOT NULL PRIMARY KEY
     ,created_at TIMESTAMP NOT NULL
     ,updated_at TIMESTAMP NOT NULL
-    ,type_name TEXT NOT NULL
+    ,type_name TEXT UNIQUE NOT NULL
     ,username TEXT NOT NULL REFERENCES users ON DELETE CASCADE
 );
 

@@ -45,7 +45,7 @@ func PostRoll(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 
 	err := decoder.Decode(&inParams)
 	if err != nil {
-		respondWithError(w, 500, "Invalid request")
+		respondWithError(w, 400, "Invalid request")
 		return
 	}
 
@@ -125,7 +125,7 @@ func PostType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 
 	err := decoder.Decode(&inParams)
 	if err != nil {
-		respondWithError(w, 500, "Invalid request")
+		respondWithError(w, 400, "Invalid request")
 		return
 	}
 
@@ -143,6 +143,55 @@ func PostType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 
 func GetTypes(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	itemTypes, err := cfg.DB.GetTypes(r.Context())
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	respondWithJSON(w, 200, itemTypes)
+}
+
+func PostCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	decoder := json.NewDecoder(r.Body)
+	inParams := struct {
+		Type      string `json:"type"`
+		FieldName string `json:"field_name"`
+		FieldType string `json:"field_type"`
+	}{}
+
+	err := decoder.Decode(&inParams)
+	if err != nil {
+		respondWithError(w, 400, "Invalid request")
+		return
+	}
+
+	if inParams.FieldType != "roll" && inParams.FieldType != "text" {
+		respondWithError(w, 422, "Bad value passed for field_type. Expecting 'roll' or 'text'.")
+		return
+	}
+
+	itemType, err := cfg.DB.GetTypeByName(r.Context(), inParams.Type)
+	if err != nil {
+		respondWithError(w, 422, "Bad value passed for 'type'")
+		return
+	}
+
+	customField, err := cfg.DB.CreateCustomFields(r.Context(), database.CreateCustomFieldsParams{
+		TypeID:          itemType.ID,
+		Username:        user,
+		CustomFieldName: inParams.FieldName,
+		CustomFieldType: inParams.FieldType,
+	})
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	respondWithJSON(w, 200, customField)
+}
+
+func GetCustomFields(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	itemTypes, err := cfg.DB.GetCustomFields(r.Context())
 	if err != nil {
 		respondWithError(w, 500, err.Error())
 		return

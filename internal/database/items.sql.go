@@ -7,7 +7,50 @@ package database
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
+
+const createCustomFields = `-- name: CreateCustomFields :one
+INSERT INTO custom_fields (id, created_at, updated_at, custom_field_name, custom_field_type, type_id, username)
+VALUES (
+    gen_random_uuid()
+    ,NOW()
+    ,NOW()
+    ,$1
+    ,$2
+    ,$3
+    ,$4
+)
+RETURNING id, created_at, updated_at, custom_field_name, custom_field_type, type_id, username
+`
+
+type CreateCustomFieldsParams struct {
+	CustomFieldName string    `json:"custom_field_name"`
+	CustomFieldType string    `json:"custom_field_type"`
+	TypeID          uuid.UUID `json:"type_id"`
+	Username        string    `json:"username"`
+}
+
+func (q *Queries) CreateCustomFields(ctx context.Context, arg CreateCustomFieldsParams) (CustomField, error) {
+	row := q.db.QueryRowContext(ctx, createCustomFields,
+		arg.CustomFieldName,
+		arg.CustomFieldType,
+		arg.TypeID,
+		arg.Username,
+	)
+	var i CustomField
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CustomFieldName,
+		&i.CustomFieldType,
+		&i.TypeID,
+		&i.Username,
+	)
+	return i, err
+}
 
 const createType = `-- name: CreateType :one
 INSERT INTO types (id, created_at, updated_at, type_name, username)
@@ -28,6 +71,62 @@ type CreateTypeParams struct {
 
 func (q *Queries) CreateType(ctx context.Context, arg CreateTypeParams) (Type, error) {
 	row := q.db.QueryRowContext(ctx, createType, arg.TypeName, arg.Username)
+	var i Type
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.TypeName,
+		&i.Username,
+	)
+	return i, err
+}
+
+const getCustomFields = `-- name: GetCustomFields :many
+SELECT id, created_at, updated_at, custom_field_name, custom_field_type, type_id, username
+FROM custom_fields
+ORDER BY created_at
+`
+
+func (q *Queries) GetCustomFields(ctx context.Context) ([]CustomField, error) {
+	rows, err := q.db.QueryContext(ctx, getCustomFields)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CustomField
+	for rows.Next() {
+		var i CustomField
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CustomFieldName,
+			&i.CustomFieldType,
+			&i.TypeID,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTypeByName = `-- name: GetTypeByName :one
+SELECT id, created_at, updated_at, type_name, username
+FROM types
+WHERE type_name = $1
+`
+
+func (q *Queries) GetTypeByName(ctx context.Context, typeName string) (Type, error) {
+	row := q.db.QueryRowContext(ctx, getTypeByName, typeName)
 	var i Type
 	err := row.Scan(
 		&i.ID,
