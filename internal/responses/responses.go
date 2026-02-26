@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/joshckidd/gm_tools/internal/auth"
 	"github.com/joshckidd/gm_tools/internal/database"
 	"github.com/joshckidd/gm_tools/internal/rolls"
@@ -198,6 +199,89 @@ func GetCustomFields(w http.ResponseWriter, r *http.Request, user string, cfg *A
 	}
 
 	respondWithJSON(w, 200, itemTypes)
+}
+
+func PostItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	decoder := json.NewDecoder(r.Body)
+	inParams := map[string]string{}
+
+	err := decoder.Decode(&inParams)
+	if err != nil {
+		respondWithError(w, 400, "Invalid request")
+		return
+	}
+
+	itemType, err := cfg.DB.GetTypeByName(r.Context(), inParams["type"])
+	if err != nil {
+		respondWithError(w, 422, "Bad value passed for 'type'")
+		return
+	}
+
+	customFields, err := cfg.DB.GetCustomFieldForType(r.Context(), itemType.ID)
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	if inParams["name"] == "" || inParams["description"] == "" {
+		respondWithError(w, 422, "Item must have a name and description.")
+		return
+
+	}
+
+	customFieldIds := map[string]uuid.UUID{}
+
+	for k := range inParams {
+		if k != "type" && k != "name" && k != "description" {
+			found := false
+			for i := range customFields {
+				//to do: validate custom field types
+				if k == customFields[i].CustomFieldName {
+					found = true
+					customFieldIds[k] = customFields[i].ID
+				}
+			}
+			if !found {
+				respondWithError(w, 422, fmt.Sprintf("No field %s for item type %s.", k, itemType.TypeName))
+				return
+			}
+		}
+	}
+
+	item, err := cfg.DB.CreateItem(r.Context(), database.CreateItemParams{
+		TypeID:          itemType.ID,
+		Username:        user,
+		ItemName:        inParams["name"],
+		ItemDescription: inParams["description"],
+	})
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	itemMap := map[string]string{
+		"name":        item.ItemName,
+		"description": item.ItemDescription,
+		"type":        item.TypeID.String(),
+	}
+
+	for k, v := range inParams {
+		if k != "type" && k != "name" && k != "description" {
+			_, err := cfg.DB.CreateCustomFieldValue(r.Context(), database.CreateCustomFieldValueParams{
+				CustomFieldValue: v,
+				CustomFieldID:    customFieldIds[k],
+				TypeID:           itemType.ID,
+				Username:         user,
+			})
+			if err != nil {
+				respondWithError(w, 500, err.Error())
+				return
+			}
+			itemMap[k] = v
+		}
+	}
+
+	respondWithJSON(w, 200, itemMap)
 }
 
 func (cfg *ApiConfig) PostUser(w http.ResponseWriter, r *http.Request) {

@@ -37,3 +37,34 @@ RETURNING id, created_at, updated_at, custom_field_name, custom_field_type, type
 SELECT *
 FROM custom_fields
 ORDER BY created_at;
+
+-- name: GetCustomFieldForType :many
+SELECT *
+FROM custom_fields
+WHERE type_id = $1;
+
+-- name: CreateItem :one
+INSERT INTO items (id, created_at, updated_at, item_name, item_description, type_id, username)
+VALUES (
+    gen_random_uuid()
+    ,NOW()
+    ,NOW()
+    ,$1
+    ,$2
+    ,$3
+    ,$4
+)
+RETURNING id, created_at, updated_at, item_name, item_description, type_id, username;
+
+-- name: CreateCustomFieldValue :one
+INSERT INTO custom_field_values (id, created_at, updated_at, custom_field_value, custom_field_id, type_id, username)
+VALUES (
+    gen_random_uuid()
+    ,NOW()
+    ,NOW()
+    ,$1
+    ,$2
+    ,$3
+    ,$4
+)
+RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, type_id, username;

@@ -7,9 +7,61 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+const createCustomFieldValue = `-- name: CreateCustomFieldValue :one
+INSERT INTO custom_field_values (id, created_at, updated_at, custom_field_value, custom_field_id, type_id, username)
+VALUES (
+    gen_random_uuid()
+    ,NOW()
+    ,NOW()
+    ,$1
+    ,$2
+    ,$3
+    ,$4
+)
+RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, type_id, username
+`
+
+type CreateCustomFieldValueParams struct {
+	CustomFieldValue string    `json:"custom_field_value"`
+	CustomFieldID    uuid.UUID `json:"custom_field_id"`
+	TypeID           uuid.UUID `json:"type_id"`
+	Username         string    `json:"username"`
+}
+
+type CreateCustomFieldValueRow struct {
+	ID               uuid.UUID `json:"id"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+	CustomFieldValue string    `json:"custom_field_value"`
+	CustomFieldID    uuid.UUID `json:"custom_field_id"`
+	TypeID           uuid.UUID `json:"type_id"`
+	Username         string    `json:"username"`
+}
+
+func (q *Queries) CreateCustomFieldValue(ctx context.Context, arg CreateCustomFieldValueParams) (CreateCustomFieldValueRow, error) {
+	row := q.db.QueryRowContext(ctx, createCustomFieldValue,
+		arg.CustomFieldValue,
+		arg.CustomFieldID,
+		arg.TypeID,
+		arg.Username,
+	)
+	var i CreateCustomFieldValueRow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CustomFieldValue,
+		&i.CustomFieldID,
+		&i.TypeID,
+		&i.Username,
+	)
+	return i, err
+}
 
 const createCustomFields = `-- name: CreateCustomFields :one
 INSERT INTO custom_fields (id, created_at, updated_at, custom_field_name, custom_field_type, type_id, username)
@@ -52,6 +104,47 @@ func (q *Queries) CreateCustomFields(ctx context.Context, arg CreateCustomFields
 	return i, err
 }
 
+const createItem = `-- name: CreateItem :one
+INSERT INTO items (id, created_at, updated_at, item_name, item_description, type_id, username)
+VALUES (
+    gen_random_uuid()
+    ,NOW()
+    ,NOW()
+    ,$1
+    ,$2
+    ,$3
+    ,$4
+)
+RETURNING id, created_at, updated_at, item_name, item_description, type_id, username
+`
+
+type CreateItemParams struct {
+	ItemName        string    `json:"item_name"`
+	ItemDescription string    `json:"item_description"`
+	TypeID          uuid.UUID `json:"type_id"`
+	Username        string    `json:"username"`
+}
+
+func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, error) {
+	row := q.db.QueryRowContext(ctx, createItem,
+		arg.ItemName,
+		arg.ItemDescription,
+		arg.TypeID,
+		arg.Username,
+	)
+	var i Item
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ItemName,
+		&i.ItemDescription,
+		&i.TypeID,
+		&i.Username,
+	)
+	return i, err
+}
+
 const createType = `-- name: CreateType :one
 INSERT INTO types (id, created_at, updated_at, type_name, username)
 VALUES (
@@ -80,6 +173,43 @@ func (q *Queries) CreateType(ctx context.Context, arg CreateTypeParams) (Type, e
 		&i.Username,
 	)
 	return i, err
+}
+
+const getCustomFieldForType = `-- name: GetCustomFieldForType :many
+SELECT id, created_at, updated_at, custom_field_name, custom_field_type, type_id, username
+FROM custom_fields
+WHERE type_id = $1
+`
+
+func (q *Queries) GetCustomFieldForType(ctx context.Context, typeID uuid.UUID) ([]CustomField, error) {
+	rows, err := q.db.QueryContext(ctx, getCustomFieldForType, typeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CustomField
+	for rows.Next() {
+		var i CustomField
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CustomFieldName,
+			&i.CustomFieldType,
+			&i.TypeID,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getCustomFields = `-- name: GetCustomFields :many

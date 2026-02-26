@@ -92,7 +92,7 @@ func (r RollType) Roll() RollResult {
 }
 
 func (r RollType) GetRollString() string {
-	var s, a, e string
+	var s, a, e, d string
 	switch r.Signum {
 	case Negative:
 		s = "-"
@@ -113,7 +113,13 @@ func (r RollType) GetRollString() string {
 	default:
 		e = ""
 	}
-	return fmt.Sprintf("%s%s%dd%d%s", s, a, r.Number, r.Dice, e)
+	if r.Dice > 1 {
+		d = fmt.Sprintf("d%d", r.Dice)
+	} else {
+		d = ""
+	}
+
+	return fmt.Sprintf("%s%s%d%s%s", s, a, r.Number, d, e)
 }
 
 func RollAll(rs []RollType) RollTotalResult {
