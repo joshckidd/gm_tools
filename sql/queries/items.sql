@@ -57,7 +57,7 @@ VALUES (
 RETURNING id, created_at, updated_at, item_name, item_description, type_id, username;
 
 -- name: CreateCustomFieldValue :one
-INSERT INTO custom_field_values (id, created_at, updated_at, custom_field_value, custom_field_id, type_id, username)
+INSERT INTO custom_field_values (id, created_at, updated_at, custom_field_value, custom_field_id, item_id, username)
 VALUES (
     gen_random_uuid()
     ,NOW()
@@ -67,4 +67,18 @@ VALUES (
     ,$3
     ,$4
 )
-RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, type_id, username;
+RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, item_id, username;
+
+-- name: GetItems :many
+SELECT *
+FROM items
+ORDER BY created_at;
+
+-- name: GetCustomFieldValues :many
+SELECT 
+    custom_fields.custom_field_name
+    ,custom_field_values.custom_field_value
+FROM custom_field_values
+JOIN custom_fields ON custom_fields.id = custom_field_values.custom_field_id
+WHERE item_id = $1
+ORDER BY custom_fields.created_at;

@@ -34,7 +34,7 @@ type CustomFieldValue struct {
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
 	CustomFieldValue string    `json:"custom_field_value"`
-	TypeID           uuid.UUID `json:"type_id"`
+	ItemID           uuid.UUID `json:"item_id"`
 	CustomFieldID    uuid.UUID `json:"custom_field_id"`
 	Username         string    `json:"username"`
 }

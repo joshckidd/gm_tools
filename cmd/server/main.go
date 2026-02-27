@@ -58,7 +58,8 @@ func main() {
 	serveMux.HandleFunc("GET /api/types", apiCfg.ApiLogin(responses.GetTypes))
 	serveMux.HandleFunc("POST /api/custom_fields", apiCfg.ApiLogin(responses.PostCustomField))
 	serveMux.HandleFunc("GET /api/custom_fields", apiCfg.ApiLogin(responses.GetCustomFields))
-	serveMux.HandleFunc("POST /api/item", apiCfg.ApiLogin(responses.PostItem))
+	serveMux.HandleFunc("POST /api/items", apiCfg.ApiLogin(responses.PostItem))
+	serveMux.HandleFunc("GET /api/items", apiCfg.ApiLogin(responses.GetItems))
 
 	server.ListenAndServe()
 }

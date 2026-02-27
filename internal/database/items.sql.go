@@ -13,7 +13,7 @@ import (
 )
 
 const createCustomFieldValue = `-- name: CreateCustomFieldValue :one
-INSERT INTO custom_field_values (id, created_at, updated_at, custom_field_value, custom_field_id, type_id, username)
+INSERT INTO custom_field_values (id, created_at, updated_at, custom_field_value, custom_field_id, item_id, username)
 VALUES (
     gen_random_uuid()
     ,NOW()
@@ -23,13 +23,13 @@ VALUES (
     ,$3
     ,$4
 )
-RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, type_id, username
+RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, item_id, username
 `
 
 type CreateCustomFieldValueParams struct {
 	CustomFieldValue string    `json:"custom_field_value"`
 	CustomFieldID    uuid.UUID `json:"custom_field_id"`
-	TypeID           uuid.UUID `json:"type_id"`
+	ItemID           uuid.UUID `json:"item_id"`
 	Username         string    `json:"username"`
 }
 
@@ -39,7 +39,7 @@ type CreateCustomFieldValueRow struct {
 	UpdatedAt        time.Time `json:"updated_at"`
 	CustomFieldValue string    `json:"custom_field_value"`
 	CustomFieldID    uuid.UUID `json:"custom_field_id"`
-	TypeID           uuid.UUID `json:"type_id"`
+	ItemID           uuid.UUID `json:"item_id"`
 	Username         string    `json:"username"`
 }
 
@@ -47,7 +47,7 @@ func (q *Queries) CreateCustomFieldValue(ctx context.Context, arg CreateCustomFi
 	row := q.db.QueryRowContext(ctx, createCustomFieldValue,
 		arg.CustomFieldValue,
 		arg.CustomFieldID,
-		arg.TypeID,
+		arg.ItemID,
 		arg.Username,
 	)
 	var i CreateCustomFieldValueRow
@@ -57,7 +57,7 @@ func (q *Queries) CreateCustomFieldValue(ctx context.Context, arg CreateCustomFi
 		&i.UpdatedAt,
 		&i.CustomFieldValue,
 		&i.CustomFieldID,
-		&i.TypeID,
+		&i.ItemID,
 		&i.Username,
 	)
 	return i, err
@@ -212,6 +212,44 @@ func (q *Queries) GetCustomFieldForType(ctx context.Context, typeID uuid.UUID) (
 	return items, nil
 }
 
+const getCustomFieldValues = `-- name: GetCustomFieldValues :many
+SELECT 
+    custom_fields.custom_field_name
+    ,custom_field_values.custom_field_value
+FROM custom_field_values
+JOIN custom_fields ON custom_fields.id = custom_field_values.custom_field_id
+WHERE item_id = $1
+ORDER BY custom_fields.created_at
+`
+
+type GetCustomFieldValuesRow struct {
+	CustomFieldName  string `json:"custom_field_name"`
+	CustomFieldValue string `json:"custom_field_value"`
+}
+
+func (q *Queries) GetCustomFieldValues(ctx context.Context, itemID uuid.UUID) ([]GetCustomFieldValuesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCustomFieldValues, itemID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCustomFieldValuesRow
+	for rows.Next() {
+		var i GetCustomFieldValuesRow
+		if err := rows.Scan(&i.CustomFieldName, &i.CustomFieldValue); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCustomFields = `-- name: GetCustomFields :many
 SELECT id, created_at, updated_at, custom_field_name, custom_field_type, type_id, username
 FROM custom_fields
@@ -233,6 +271,43 @@ func (q *Queries) GetCustomFields(ctx context.Context) ([]CustomField, error) {
 			&i.UpdatedAt,
 			&i.CustomFieldName,
 			&i.CustomFieldType,
+			&i.TypeID,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getItems = `-- name: GetItems :many
+SELECT id, created_at, updated_at, item_name, item_description, type_id, username
+FROM items
+ORDER BY created_at
+`
+
+func (q *Queries) GetItems(ctx context.Context) ([]Item, error) {
+	rows, err := q.db.QueryContext(ctx, getItems)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Item
+	for rows.Next() {
+		var i Item
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ItemName,
+			&i.ItemDescription,
 			&i.TypeID,
 			&i.Username,
 		); err != nil {

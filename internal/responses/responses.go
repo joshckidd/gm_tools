@@ -263,6 +263,9 @@ func PostItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 		"name":        item.ItemName,
 		"description": item.ItemDescription,
 		"type":        item.TypeID.String(),
+		"created_at":  item.CreatedAt.String(),
+		"updated_at":  item.UpdatedAt.String(),
+		"username":    item.Username,
 	}
 
 	for k, v := range inParams {
@@ -270,7 +273,7 @@ func PostItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 			_, err := cfg.DB.CreateCustomFieldValue(r.Context(), database.CreateCustomFieldValueParams{
 				CustomFieldValue: v,
 				CustomFieldID:    customFieldIds[k],
-				TypeID:           itemType.ID,
+				ItemID:           item.ID,
 				Username:         user,
 			})
 			if err != nil {
@@ -282,6 +285,42 @@ func PostItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 	}
 
 	respondWithJSON(w, 200, itemMap)
+}
+
+func GetItems(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	baseItems, err := cfg.DB.GetItems(r.Context())
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	items := make([]map[string]string, len(baseItems))
+
+	for i := range baseItems {
+		item := map[string]string{
+			"id":          baseItems[i].ID.String(),
+			"name":        baseItems[i].ItemName,
+			"description": baseItems[i].ItemDescription,
+			"type":        baseItems[i].TypeID.String(),
+			"created_at":  baseItems[i].CreatedAt.String(),
+			"updated_at":  baseItems[i].UpdatedAt.String(),
+			"username":    baseItems[i].Username,
+		}
+
+		customFields, err := cfg.DB.GetCustomFieldValues(r.Context(), baseItems[i].ID)
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+
+		for j := range customFields {
+			item[customFields[j].CustomFieldName] = customFields[j].CustomFieldValue
+		}
+
+		items[i] = item
+	}
+
+	respondWithJSON(w, 200, items)
 }
 
 func (cfg *ApiConfig) PostUser(w http.ResponseWriter, r *http.Request) {
