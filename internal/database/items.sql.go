@@ -175,6 +175,16 @@ func (q *Queries) CreateType(ctx context.Context, arg CreateTypeParams) (Type, e
 	return i, err
 }
 
+const deleteType = `-- name: DeleteType :exec
+DELETE FROM types
+WHERE id = $1
+`
+
+func (q *Queries) DeleteType(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteType, id)
+	return err
+}
+
 const getCustomFieldForType = `-- name: GetCustomFieldForType :many
 SELECT id, created_at, updated_at, custom_field_name, custom_field_type, type_id, username
 FROM custom_fields

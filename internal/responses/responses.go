@@ -407,6 +407,22 @@ func (cfg *ApiConfig) UserLogin(w http.ResponseWriter, r *http.Request) {
 	respondWithError(w, 401, "Incorrect email or password")
 }
 
+func DeleteType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	itemId, err := uuid.Parse(r.PathValue("itemId"))
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	err = cfg.DB.DeleteType(r.Context(), itemId)
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	respondWithJSON(w, 200, itemId)
+}
+
 func respondWithJSON(w http.ResponseWriter, code int, payload any) {
 	val, err := json.Marshal(payload)
 	if err != nil {

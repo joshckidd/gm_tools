@@ -82,3 +82,7 @@ FROM custom_field_values
 JOIN custom_fields ON custom_fields.id = custom_field_values.custom_field_id
 WHERE item_id = $1
 ORDER BY custom_fields.created_at;
+
+-- name: DeleteType :exec
+DELETE FROM types
+WHERE id = $1;
