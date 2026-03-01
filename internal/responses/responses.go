@@ -166,7 +166,7 @@ func PostCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *A
 		return
 	}
 
-	if inParams.FieldType != "roll" && inParams.FieldType != "text" {
+	if inParams.FieldType != "roll" && inParams.FieldType != "picklist" {
 		respondWithError(w, 422, "Bad value passed for field_type. Expecting 'roll' or 'text'.")
 		return
 	}
@@ -421,6 +421,22 @@ func DeleteType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiCon
 	}
 
 	respondWithJSON(w, 200, itemId)
+}
+
+func DeleteCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	fieldId, err := uuid.Parse(r.PathValue("fieldId"))
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	err = cfg.DB.DeleteCustomField(r.Context(), fieldId)
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	respondWithJSON(w, 200, fieldId)
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload any) {

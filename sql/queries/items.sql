@@ -86,3 +86,7 @@ ORDER BY custom_fields.created_at;
 -- name: DeleteType :exec
 DELETE FROM types
 WHERE id = $1;
+
+-- name: DeleteCustomField :exec
+DELETE FROM custom_fields
+WHERE id = $1;
