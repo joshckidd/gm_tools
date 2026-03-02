@@ -94,3 +94,9 @@ WHERE id = $1;
 -- name: DeleteItem :exec
 DELETE FROM items
 WHERE id = $1;
+
+-- name: UpdateType :one
+UPDATE types
+SET type_name = $2
+WHERE id = $1
+RETURNING id, created_at, updated_at, type_name, username;

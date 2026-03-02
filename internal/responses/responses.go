@@ -455,6 +455,36 @@ func DeleteItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiCon
 	respondWithJSON(w, 200, itemId)
 }
 
+func UpdateType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	typeId, err := uuid.Parse(r.PathValue("typeId"))
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	inParams := struct {
+		Type string `json:"type"`
+	}{}
+
+	err = decoder.Decode(&inParams)
+	if err != nil {
+		respondWithError(w, 400, "Invalid request")
+		return
+	}
+
+	itemType, err := cfg.DB.UpdateType(r.Context(), database.UpdateTypeParams{
+		TypeName: inParams.Type,
+		ID:       typeId,
+	})
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	respondWithJSON(w, 200, itemType)
+}
+
 func respondWithJSON(w http.ResponseWriter, code int, payload any) {
 	val, err := json.Marshal(payload)
 	if err != nil {

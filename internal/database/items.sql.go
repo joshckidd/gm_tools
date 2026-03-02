@@ -407,3 +407,28 @@ func (q *Queries) GetTypes(ctx context.Context) ([]Type, error) {
 	}
 	return items, nil
 }
+
+const updateType = `-- name: UpdateType :one
+UPDATE types
+SET type_name = $2
+WHERE id = $1
+RETURNING id, created_at, updated_at, type_name, username
+`
+
+type UpdateTypeParams struct {
+	ID       uuid.UUID `json:"id"`
+	TypeName string    `json:"type_name"`
+}
+
+func (q *Queries) UpdateType(ctx context.Context, arg UpdateTypeParams) (Type, error) {
+	row := q.db.QueryRowContext(ctx, updateType, arg.ID, arg.TypeName)
+	var i Type
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.TypeName,
+		&i.Username,
+	)
+	return i, err
+}
