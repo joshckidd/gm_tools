@@ -408,19 +408,19 @@ func (cfg *ApiConfig) UserLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
-	itemId, err := uuid.Parse(r.PathValue("itemId"))
+	typeId, err := uuid.Parse(r.PathValue("typeId"))
 	if err != nil {
 		respondWithError(w, 422, err.Error())
 		return
 	}
 
-	err = cfg.DB.DeleteType(r.Context(), itemId)
+	err = cfg.DB.DeleteType(r.Context(), typeId)
 	if err != nil {
 		respondWithError(w, 422, err.Error())
 		return
 	}
 
-	respondWithJSON(w, 200, itemId)
+	respondWithJSON(w, 200, typeId)
 }
 
 func DeleteCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
@@ -437,6 +437,22 @@ func DeleteCustomField(w http.ResponseWriter, r *http.Request, user string, cfg 
 	}
 
 	respondWithJSON(w, 200, fieldId)
+}
+
+func DeleteItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	itemId, err := uuid.Parse(r.PathValue("itemId"))
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	err = cfg.DB.DeleteItem(r.Context(), itemId)
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	respondWithJSON(w, 200, itemId)
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload any) {

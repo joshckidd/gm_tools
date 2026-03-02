@@ -185,6 +185,16 @@ func (q *Queries) DeleteCustomField(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const deleteItem = `-- name: DeleteItem :exec
+DELETE FROM items
+WHERE id = $1
+`
+
+func (q *Queries) DeleteItem(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteItem, id)
+	return err
+}
+
 const deleteType = `-- name: DeleteType :exec
 DELETE FROM types
 WHERE id = $1

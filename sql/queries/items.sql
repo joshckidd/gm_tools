@@ -90,3 +90,7 @@ WHERE id = $1;
 -- name: DeleteCustomField :exec
 DELETE FROM custom_fields
 WHERE id = $1;
+
+-- name: DeleteItem :exec
+DELETE FROM items
+WHERE id = $1;

@@ -56,12 +56,13 @@ func main() {
 	serveMux.HandleFunc("POST /api/login", apiCfg.UserLogin)
 	serveMux.HandleFunc("POST /api/types", apiCfg.ApiLogin(responses.PostType))
 	serveMux.HandleFunc("GET /api/types", apiCfg.ApiLogin(responses.GetTypes))
-	serveMux.HandleFunc("DELETE /api/types/{itemId}", apiCfg.ApiLogin(responses.DeleteType))
+	serveMux.HandleFunc("DELETE /api/types/{typeId}", apiCfg.ApiLogin(responses.DeleteType))
 	serveMux.HandleFunc("POST /api/custom_fields", apiCfg.ApiLogin(responses.PostCustomField))
 	serveMux.HandleFunc("GET /api/custom_fields", apiCfg.ApiLogin(responses.GetCustomFields))
-	serveMux.HandleFunc("DELETE /api/custom_fields/{itemId}", apiCfg.ApiLogin(responses.DeleteCustomField))
+	serveMux.HandleFunc("DELETE /api/custom_fields/{fieldId}", apiCfg.ApiLogin(responses.DeleteCustomField))
 	serveMux.HandleFunc("POST /api/items", apiCfg.ApiLogin(responses.PostItem))
 	serveMux.HandleFunc("GET /api/items", apiCfg.ApiLogin(responses.GetItems))
+	serveMux.HandleFunc("DELETE /api/items/{itemId}", apiCfg.ApiLogin(responses.DeleteItem))
 
 	server.ListenAndServe()
 }
