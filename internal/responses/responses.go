@@ -525,6 +525,189 @@ func GetItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig
 	respondWithJSON(w, 200, item)
 }
 
+func PutCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	fieldId, err := uuid.Parse(r.PathValue("fieldId"))
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	customField, err := cfg.DB.GetCustomFieldById(r.Context(), fieldId)
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	inParams := struct {
+		Type      string `json:"type"`
+		FieldName string `json:"field_name"`
+		FieldType string `json:"field_type"`
+	}{}
+
+	err = decoder.Decode(&inParams)
+	if err != nil {
+		respondWithError(w, 400, "Invalid request")
+		return
+	}
+
+	if inParams.FieldType != "" && (inParams.FieldType == "picklist" || inParams.FieldType == "roll") {
+		customField.CustomFieldType = inParams.FieldType
+	} else {
+		respondWithError(w, 422, "Bad value passed for field_type. Expecting 'roll' or 'text'.")
+		return
+	}
+
+	if inParams.Type != "" {
+		itemType, err := cfg.DB.GetTypeByName(r.Context(), inParams.Type)
+		if err != nil {
+			respondWithError(w, 422, "Bad value passed for 'type'")
+			return
+		}
+		customField.TypeID = itemType.ID
+	}
+
+	if inParams.FieldName != "" {
+		customField.CustomFieldName = inParams.FieldName
+	}
+
+	updatedCustomField, err := cfg.DB.UpdateCustomField(r.Context(), database.UpdateCustomFieldParams{
+		TypeID:          customField.TypeID,
+		CustomFieldName: customField.CustomFieldName,
+		CustomFieldType: customField.CustomFieldType,
+		ID:              fieldId,
+	})
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	respondWithJSON(w, 200, updatedCustomField)
+}
+
+func PutItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	itemId, err := uuid.Parse(r.PathValue("itemId"))
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	baseItem, err := cfg.DB.GetItemById(r.Context(), itemId)
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	item, err := fillOutItemFields(baseItem, r, cfg)
+
+	decoder := json.NewDecoder(r.Body)
+	inParams := map[string]string{}
+
+	err = decoder.Decode(&inParams)
+	if err != nil {
+		respondWithError(w, 400, "Invalid request")
+		return
+	}
+
+	var itemType database.Type
+
+	if inParams["type"] != "" {
+		itemType, err = cfg.DB.GetTypeByName(r.Context(), inParams["type"])
+		if err != nil {
+			respondWithError(w, 422, "Bad value passed for 'type'")
+			return
+		}
+		item["type"] = itemType.ID.String()
+	} else {
+		typeId, err := uuid.Parse(item["type"])
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+		itemType, err = cfg.DB.GetTypeById(r.Context(), typeId)
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+	}
+
+	if inParams["name"] != "" {
+		item["name"] = inParams["name"]
+	}
+
+	if inParams["description"] != "" {
+		item["description"] = inParams["description"]
+	}
+
+	customFields, _ := cfg.DB.GetCustomFieldForType(r.Context(), itemType.ID)
+	customFieldIds := map[string]uuid.UUID{}
+
+	for k := range inParams {
+		if k != "type" && k != "name" && k != "description" {
+			found := false
+			for i := range customFields {
+				//to do: validate custom field types
+				if k == customFields[i].CustomFieldName {
+					found = true
+					customFieldIds[k] = customFields[i].ID
+				}
+			}
+			if !found {
+				respondWithError(w, 422, fmt.Sprintf("No field %s for item type %s.", k, inParams["type"]))
+				return
+			}
+		}
+	}
+
+	customFieldValues, _ := cfg.DB.GetCustomFieldValues(r.Context(), itemId)
+
+	for k := range inParams {
+		if k != "type" && k != "name" && k != "description" && inParams[k] != "" {
+			item[k] = inParams[k]
+			found := false
+			for i := range customFieldValues {
+				//to do: validate custom field types
+				if k == customFieldValues[i].CustomFieldName {
+					found = true
+					_, err := cfg.DB.UpdateCustomFieldValue(r.Context(), database.UpdateCustomFieldValueParams{
+						ID:               customFieldValues[i].ID,
+						CustomFieldValue: inParams[k],
+					})
+					if err != nil {
+						respondWithError(w, 500, err.Error())
+						return
+					}
+				}
+			}
+			if !found {
+				_, err := cfg.DB.CreateCustomFieldValue(r.Context(), database.CreateCustomFieldValueParams{
+					CustomFieldID:    customFieldIds[k],
+					CustomFieldValue: inParams[k],
+					ItemID:           itemId,
+					Username:         user,
+				})
+				if err != nil {
+					respondWithError(w, 500, err.Error())
+					return
+				}
+			}
+		}
+	}
+
+	_, err = cfg.DB.UpdateItem(r.Context(), database.UpdateItemParams{
+		ID:              itemId,
+		ItemName:        item["name"],
+		ItemDescription: item["description"],
+		TypeID:          itemType.ID,
+	})
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	respondWithJSON(w, 200, item)
+}
+
 func fillOutItemFields(baseItem database.Item, r *http.Request, cfg *ApiConfig) (map[string]string, error) {
 	item := map[string]string{
 		"id":          baseItem.ID.String(),

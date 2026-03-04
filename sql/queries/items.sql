@@ -78,6 +78,7 @@ ORDER BY created_at;
 SELECT 
     custom_fields.custom_field_name
     ,custom_field_values.custom_field_value
+    ,custom_field_values.id
 FROM custom_field_values
 JOIN custom_fields ON custom_fields.id = custom_field_values.custom_field_id
 WHERE item_id = $1
@@ -138,8 +139,6 @@ RETURNING id, created_at, updated_at, item_name, item_description, type_id, user
 -- name: UpdateCustomFieldValue :one
 UPDATE custom_field_values
 SET custom_field_value = $2
-    ,custom_field_id = $3
-    ,item_id = $4
     ,updated_at = NOW()
 WHERE id = $1
 RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, item_id, username;

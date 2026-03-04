@@ -267,6 +267,7 @@ const getCustomFieldValues = `-- name: GetCustomFieldValues :many
 SELECT 
     custom_fields.custom_field_name
     ,custom_field_values.custom_field_value
+    ,custom_field_values.id
 FROM custom_field_values
 JOIN custom_fields ON custom_fields.id = custom_field_values.custom_field_id
 WHERE item_id = $1
@@ -274,8 +275,9 @@ ORDER BY custom_fields.created_at
 `
 
 type GetCustomFieldValuesRow struct {
-	CustomFieldName  string `json:"custom_field_name"`
-	CustomFieldValue string `json:"custom_field_value"`
+	CustomFieldName  string    `json:"custom_field_name"`
+	CustomFieldValue string    `json:"custom_field_value"`
+	ID               uuid.UUID `json:"id"`
 }
 
 func (q *Queries) GetCustomFieldValues(ctx context.Context, itemID uuid.UUID) ([]GetCustomFieldValuesRow, error) {
@@ -287,7 +289,7 @@ func (q *Queries) GetCustomFieldValues(ctx context.Context, itemID uuid.UUID) ([
 	var items []GetCustomFieldValuesRow
 	for rows.Next() {
 		var i GetCustomFieldValuesRow
-		if err := rows.Scan(&i.CustomFieldName, &i.CustomFieldValue); err != nil {
+		if err := rows.Scan(&i.CustomFieldName, &i.CustomFieldValue, &i.ID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -509,8 +511,6 @@ func (q *Queries) UpdateCustomField(ctx context.Context, arg UpdateCustomFieldPa
 const updateCustomFieldValue = `-- name: UpdateCustomFieldValue :one
 UPDATE custom_field_values
 SET custom_field_value = $2
-    ,custom_field_id = $3
-    ,item_id = $4
     ,updated_at = NOW()
 WHERE id = $1
 RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, item_id, username
@@ -519,8 +519,6 @@ RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, item_
 type UpdateCustomFieldValueParams struct {
 	ID               uuid.UUID `json:"id"`
 	CustomFieldValue string    `json:"custom_field_value"`
-	CustomFieldID    uuid.UUID `json:"custom_field_id"`
-	ItemID           uuid.UUID `json:"item_id"`
 }
 
 type UpdateCustomFieldValueRow struct {
@@ -534,12 +532,7 @@ type UpdateCustomFieldValueRow struct {
 }
 
 func (q *Queries) UpdateCustomFieldValue(ctx context.Context, arg UpdateCustomFieldValueParams) (UpdateCustomFieldValueRow, error) {
-	row := q.db.QueryRowContext(ctx, updateCustomFieldValue,
-		arg.ID,
-		arg.CustomFieldValue,
-		arg.CustomFieldID,
-		arg.ItemID,
-	)
+	row := q.db.QueryRowContext(ctx, updateCustomFieldValue, arg.ID, arg.CustomFieldValue)
 	var i UpdateCustomFieldValueRow
 	err := row.Scan(
 		&i.ID,
