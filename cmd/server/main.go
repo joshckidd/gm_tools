@@ -58,7 +58,7 @@ func main() {
 	serveMux.HandleFunc("GET /api/types", apiCfg.ApiLogin(responses.GetTypes))
 	serveMux.HandleFunc("GET /api/types/{typeId}", apiCfg.ApiLogin(responses.GetType))
 	serveMux.HandleFunc("DELETE /api/types/{typeId}", apiCfg.ApiLogin(responses.DeleteType))
-	serveMux.HandleFunc("PUT /api/types/{typeId}", apiCfg.ApiLogin(responses.UpdateType))
+	serveMux.HandleFunc("PUT /api/types/{typeId}", apiCfg.ApiLogin(responses.PutType))
 	serveMux.HandleFunc("POST /api/custom_fields", apiCfg.ApiLogin(responses.PostCustomField))
 	serveMux.HandleFunc("GET /api/custom_fields", apiCfg.ApiLogin(responses.GetCustomFields))
 	serveMux.HandleFunc("GET /api/custom_fields/{fieldId}", apiCfg.ApiLogin(responses.GetCustomField))

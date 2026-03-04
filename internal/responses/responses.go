@@ -441,7 +441,7 @@ func DeleteItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiCon
 	respondWithJSON(w, 200, itemId)
 }
 
-func UpdateType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+func PutType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	typeId, err := uuid.Parse(r.PathValue("typeId"))
 	if err != nil {
 		respondWithError(w, 422, err.Error())

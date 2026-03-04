@@ -469,6 +469,127 @@ func (q *Queries) GetTypes(ctx context.Context) ([]Type, error) {
 	return items, nil
 }
 
+const updateCustomField = `-- name: UpdateCustomField :one
+UPDATE custom_fields
+SET custom_field_name = $2
+    ,custom_field_type = $3
+    ,type_id = $4
+    ,updated_at = NOW()
+WHERE id = $1
+RETURNING id, created_at, updated_at, custom_field_name, custom_field_type, type_id, username
+`
+
+type UpdateCustomFieldParams struct {
+	ID              uuid.UUID `json:"id"`
+	CustomFieldName string    `json:"custom_field_name"`
+	CustomFieldType string    `json:"custom_field_type"`
+	TypeID          uuid.UUID `json:"type_id"`
+}
+
+func (q *Queries) UpdateCustomField(ctx context.Context, arg UpdateCustomFieldParams) (CustomField, error) {
+	row := q.db.QueryRowContext(ctx, updateCustomField,
+		arg.ID,
+		arg.CustomFieldName,
+		arg.CustomFieldType,
+		arg.TypeID,
+	)
+	var i CustomField
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CustomFieldName,
+		&i.CustomFieldType,
+		&i.TypeID,
+		&i.Username,
+	)
+	return i, err
+}
+
+const updateCustomFieldValue = `-- name: UpdateCustomFieldValue :one
+UPDATE custom_field_values
+SET custom_field_value = $2
+    ,custom_field_id = $3
+    ,item_id = $4
+    ,updated_at = NOW()
+WHERE id = $1
+RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, item_id, username
+`
+
+type UpdateCustomFieldValueParams struct {
+	ID               uuid.UUID `json:"id"`
+	CustomFieldValue string    `json:"custom_field_value"`
+	CustomFieldID    uuid.UUID `json:"custom_field_id"`
+	ItemID           uuid.UUID `json:"item_id"`
+}
+
+type UpdateCustomFieldValueRow struct {
+	ID               uuid.UUID `json:"id"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+	CustomFieldValue string    `json:"custom_field_value"`
+	CustomFieldID    uuid.UUID `json:"custom_field_id"`
+	ItemID           uuid.UUID `json:"item_id"`
+	Username         string    `json:"username"`
+}
+
+func (q *Queries) UpdateCustomFieldValue(ctx context.Context, arg UpdateCustomFieldValueParams) (UpdateCustomFieldValueRow, error) {
+	row := q.db.QueryRowContext(ctx, updateCustomFieldValue,
+		arg.ID,
+		arg.CustomFieldValue,
+		arg.CustomFieldID,
+		arg.ItemID,
+	)
+	var i UpdateCustomFieldValueRow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CustomFieldValue,
+		&i.CustomFieldID,
+		&i.ItemID,
+		&i.Username,
+	)
+	return i, err
+}
+
+const updateItem = `-- name: UpdateItem :one
+UPDATE items
+SET item_name = $2
+    ,item_description = $3
+    ,type_id = $4
+    ,updated_at = NOW()
+WHERE id = $1
+RETURNING id, created_at, updated_at, item_name, item_description, type_id, username
+`
+
+type UpdateItemParams struct {
+	ID              uuid.UUID `json:"id"`
+	ItemName        string    `json:"item_name"`
+	ItemDescription string    `json:"item_description"`
+	TypeID          uuid.UUID `json:"type_id"`
+}
+
+func (q *Queries) UpdateItem(ctx context.Context, arg UpdateItemParams) (Item, error) {
+	row := q.db.QueryRowContext(ctx, updateItem,
+		arg.ID,
+		arg.ItemName,
+		arg.ItemDescription,
+		arg.TypeID,
+	)
+	var i Item
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ItemName,
+		&i.ItemDescription,
+		&i.TypeID,
+		&i.Username,
+	)
+	return i, err
+}
+
 const updateType = `-- name: UpdateType :one
 UPDATE types
 SET type_name = $2

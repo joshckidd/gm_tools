@@ -116,3 +116,30 @@ WHERE id = $1;
 SELECT *
 FROM items
 WHERE id = $1;
+
+-- name: UpdateCustomField :one
+UPDATE custom_fields
+SET custom_field_name = $2
+    ,custom_field_type = $3
+    ,type_id = $4
+    ,updated_at = NOW()
+WHERE id = $1
+RETURNING id, created_at, updated_at, custom_field_name, custom_field_type, type_id, username;
+
+-- name: UpdateItem :one
+UPDATE items
+SET item_name = $2
+    ,item_description = $3
+    ,type_id = $4
+    ,updated_at = NOW()
+WHERE id = $1
+RETURNING id, created_at, updated_at, item_name, item_description, type_id, username;
+
+-- name: UpdateCustomFieldValue :one
+UPDATE custom_field_values
+SET custom_field_value = $2
+    ,custom_field_id = $3
+    ,item_id = $4
+    ,updated_at = NOW()
+WHERE id = $1
+RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, item_id, username;
