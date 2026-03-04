@@ -297,24 +297,10 @@ func GetItems(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 	items := make([]map[string]string, len(baseItems))
 
 	for i := range baseItems {
-		item := map[string]string{
-			"id":          baseItems[i].ID.String(),
-			"name":        baseItems[i].ItemName,
-			"description": baseItems[i].ItemDescription,
-			"type":        baseItems[i].TypeID.String(),
-			"created_at":  baseItems[i].CreatedAt.String(),
-			"updated_at":  baseItems[i].UpdatedAt.String(),
-			"username":    baseItems[i].Username,
-		}
-
-		customFields, err := cfg.DB.GetCustomFieldValues(r.Context(), baseItems[i].ID)
+		item, err := fillOutItemFields(baseItems[i], r, cfg)
 		if err != nil {
 			respondWithError(w, 500, err.Error())
 			return
-		}
-
-		for j := range customFields {
-			item[customFields[j].CustomFieldName] = customFields[j].CustomFieldValue
 		}
 
 		items[i] = item
@@ -483,6 +469,83 @@ func UpdateType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiCon
 	}
 
 	respondWithJSON(w, 200, itemType)
+}
+
+func GetType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	typeId, err := uuid.Parse(r.PathValue("typeId"))
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	itemType, err := cfg.DB.GetTypeById(r.Context(), typeId)
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	respondWithJSON(w, 200, itemType)
+}
+
+func GetCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	fieldId, err := uuid.Parse(r.PathValue("fieldId"))
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	customField, err := cfg.DB.GetCustomFieldById(r.Context(), fieldId)
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	respondWithJSON(w, 200, customField)
+}
+
+func GetItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	itemId, err := uuid.Parse(r.PathValue("itemId"))
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	baseItem, err := cfg.DB.GetItemById(r.Context(), itemId)
+	if err != nil {
+		respondWithError(w, 422, err.Error())
+		return
+	}
+
+	item, err := fillOutItemFields(baseItem, r, cfg)
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	respondWithJSON(w, 200, item)
+}
+
+func fillOutItemFields(baseItem database.Item, r *http.Request, cfg *ApiConfig) (map[string]string, error) {
+	item := map[string]string{
+		"id":          baseItem.ID.String(),
+		"name":        baseItem.ItemName,
+		"description": baseItem.ItemDescription,
+		"type":        baseItem.TypeID.String(),
+		"created_at":  baseItem.CreatedAt.String(),
+		"updated_at":  baseItem.UpdatedAt.String(),
+		"username":    baseItem.Username,
+	}
+
+	customFields, err := cfg.DB.GetCustomFieldValues(r.Context(), baseItem.ID)
+	if err != nil {
+		return map[string]string{}, err
+	}
+
+	for j := range customFields {
+		item[customFields[j].CustomFieldName] = customFields[j].CustomFieldValue
+	}
+
+	return item, nil
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload any) {

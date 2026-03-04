@@ -205,6 +205,27 @@ func (q *Queries) DeleteType(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getCustomFieldById = `-- name: GetCustomFieldById :one
+SELECT id, created_at, updated_at, custom_field_name, custom_field_type, type_id, username
+FROM custom_fields
+WHERE id = $1
+`
+
+func (q *Queries) GetCustomFieldById(ctx context.Context, id uuid.UUID) (CustomField, error) {
+	row := q.db.QueryRowContext(ctx, getCustomFieldById, id)
+	var i CustomField
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CustomFieldName,
+		&i.CustomFieldType,
+		&i.TypeID,
+		&i.Username,
+	)
+	return i, err
+}
+
 const getCustomFieldForType = `-- name: GetCustomFieldForType :many
 SELECT id, created_at, updated_at, custom_field_name, custom_field_type, type_id, username
 FROM custom_fields
@@ -317,6 +338,27 @@ func (q *Queries) GetCustomFields(ctx context.Context) ([]CustomField, error) {
 	return items, nil
 }
 
+const getItemById = `-- name: GetItemById :one
+SELECT id, created_at, updated_at, item_name, item_description, type_id, username
+FROM items
+WHERE id = $1
+`
+
+func (q *Queries) GetItemById(ctx context.Context, id uuid.UUID) (Item, error) {
+	row := q.db.QueryRowContext(ctx, getItemById, id)
+	var i Item
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ItemName,
+		&i.ItemDescription,
+		&i.TypeID,
+		&i.Username,
+	)
+	return i, err
+}
+
 const getItems = `-- name: GetItems :many
 SELECT id, created_at, updated_at, item_name, item_description, type_id, username
 FROM items
@@ -352,6 +394,25 @@ func (q *Queries) GetItems(ctx context.Context) ([]Item, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getTypeById = `-- name: GetTypeById :one
+SELECT id, created_at, updated_at, type_name, username
+FROM types
+WHERE id = $1
+`
+
+func (q *Queries) GetTypeById(ctx context.Context, id uuid.UUID) (Type, error) {
+	row := q.db.QueryRowContext(ctx, getTypeById, id)
+	var i Type
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.TypeName,
+		&i.Username,
+	)
+	return i, err
 }
 
 const getTypeByName = `-- name: GetTypeByName :one

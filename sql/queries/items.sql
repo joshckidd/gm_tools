@@ -101,3 +101,18 @@ SET type_name = $2
     ,updated_at = NOW()
 WHERE id = $1
 RETURNING id, created_at, updated_at, type_name, username;
+
+-- name: GetTypeById :one
+SELECT *
+FROM types
+WHERE id = $1;
+
+-- name: GetCustomFieldById :one
+SELECT *
+FROM custom_fields
+WHERE id = $1;
+
+-- name: GetItemById :one
+SELECT *
+FROM items
+WHERE id = $1;
