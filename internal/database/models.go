@@ -29,6 +29,16 @@ type CustomField struct {
 	Username        string    `json:"username"`
 }
 
+type CustomFieldInstanceValue struct {
+	ID               uuid.UUID `json:"id"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+	CustomFieldValue string    `json:"custom_field_value"`
+	InstanceID       uuid.UUID `json:"instance_id"`
+	CustomFieldID    uuid.UUID `json:"custom_field_id"`
+	Username         string    `json:"username"`
+}
+
 type CustomFieldValue struct {
 	ID               uuid.UUID `json:"id"`
 	CreatedAt        time.Time `json:"created_at"`
@@ -37,6 +47,14 @@ type CustomFieldValue struct {
 	ItemID           uuid.UUID `json:"item_id"`
 	CustomFieldID    uuid.UUID `json:"custom_field_id"`
 	Username         string    `json:"username"`
+}
+
+type Instance struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	ItemID    uuid.UUID `json:"item_id"`
+	Username  string    `json:"username"`
 }
 
 type Item struct {

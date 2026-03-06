@@ -69,6 +69,7 @@ func main() {
 	serveMux.HandleFunc("GET /api/items/{itemId}", apiCfg.ApiLogin(responses.GetItem))
 	serveMux.HandleFunc("DELETE /api/items/{itemId}", apiCfg.ApiLogin(responses.DeleteItem))
 	serveMux.HandleFunc("PUT /api/items/{itemId}", apiCfg.ApiLogin(responses.PutItem))
+	serveMux.HandleFunc("POST /api/instances", apiCfg.ApiLogin(responses.PostInstances))
 
 	server.ListenAndServe()
 }

@@ -708,6 +708,89 @@ func PutItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig
 	respondWithJSON(w, 200, item)
 }
 
+func PostInstances(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	decoder := json.NewDecoder(r.Body)
+	inParams := struct {
+		Number string `json:"number"`
+		Type   string `json:"type"`
+	}{}
+
+	err := decoder.Decode(&inParams)
+	if err != nil {
+		respondWithError(w, 400, "Invalid request")
+		return
+	}
+
+	itemType, err := cfg.DB.GetTypeByName(r.Context(), inParams.Type)
+	if err != nil {
+		respondWithError(w, 422, "Bad value passed for 'type'")
+		return
+	}
+
+	itemIds, err := cfg.DB.GetItemIdsByType(r.Context(), itemType.ID)
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	items := rolls.RandomFromSliceN(itemIds, rolls.RollAll(rolls.ParseRoll(inParams.Number)).TotalResult)
+
+	instances := make([]map[string]string, len(items))
+
+	for i := range items {
+		instMap := map[string]string{
+			"name":        items[i].ItemName,
+			"description": items[i].ItemDescription,
+		}
+
+		inst, err := cfg.DB.CreateInstance(r.Context(), database.CreateInstanceParams{
+			ItemID:   items[i].ID,
+			Username: user,
+		})
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+
+		instMap["id"] = inst.ID.String()
+
+		customFields, _ := cfg.DB.GetCustomFieldValues(r.Context(), items[i].ID)
+
+		for j := range customFields {
+			switch customFields[j].CustomFieldType {
+			case "roll":
+				value, err := cfg.DB.CreateCustomFieldInstanceValue(r.Context(), database.CreateCustomFieldInstanceValueParams{
+					CustomFieldValue: strconv.Itoa(rolls.RollAll(rolls.ParseRoll(customFields[j].CustomFieldValue)).TotalResult),
+					Username:         user,
+					CustomFieldID:    customFields[j].CustomFieldID,
+					InstanceID:       inst.ID,
+				})
+				if err != nil {
+					respondWithError(w, 500, err.Error())
+					return
+				}
+				instMap[customFields[j].CustomFieldName] = value.CustomFieldValue
+			case "picklist":
+				value, err := cfg.DB.CreateCustomFieldInstanceValue(r.Context(), database.CreateCustomFieldInstanceValueParams{
+					CustomFieldValue: rolls.RandomPicklistValue(customFields[j].CustomFieldValue),
+					Username:         user,
+					CustomFieldID:    customFields[j].CustomFieldID,
+					InstanceID:       inst.ID,
+				})
+				if err != nil {
+					respondWithError(w, 500, err.Error())
+					return
+				}
+				instMap[customFields[j].CustomFieldName] = value.CustomFieldValue
+			}
+		}
+
+		instances[i] = instMap
+	}
+
+	respondWithJSON(w, 200, instances)
+}
+
 func fillOutItemFields(baseItem database.Item, r *http.Request, cfg *ApiConfig) (map[string]string, error) {
 	item := map[string]string{
 		"id":          baseItem.ID.String(),

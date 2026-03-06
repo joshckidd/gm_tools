@@ -5,6 +5,7 @@ import (
 	"math/rand/v2"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type RollAggregate int
@@ -170,6 +171,22 @@ func ParseRoll(str string) []RollType {
 		} else {
 			res[i].Exploding = false
 		}
+	}
+	return res
+}
+
+func randomFromSlice[T any](vals []T) T {
+	return vals[rand.IntN(len(vals))]
+}
+
+func RandomPicklistValue(picklist string) string {
+	return randomFromSlice(strings.Split(picklist, ";"))
+}
+
+func RandomFromSliceN[T any](vals []T, n int) []T {
+	res := make([]T, n)
+	for i := range n {
+		res[i] = randomFromSlice(vals)
 	}
 	return res
 }

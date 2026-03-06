@@ -78,6 +78,8 @@ ORDER BY created_at;
 SELECT 
     custom_fields.custom_field_name
     ,custom_field_values.custom_field_value
+    ,custom_fields.custom_field_type
+    ,custom_field_values.custom_field_id
     ,custom_field_values.id
 FROM custom_field_values
 JOIN custom_fields ON custom_fields.id = custom_field_values.custom_field_id
@@ -142,3 +144,8 @@ SET custom_field_value = $2
     ,updated_at = NOW()
 WHERE id = $1
 RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, item_id, username;
+
+-- name: GetItemIdsByType :many
+SELECT id, item_name, item_description
+FROM items
+WHERE type_id = $1;

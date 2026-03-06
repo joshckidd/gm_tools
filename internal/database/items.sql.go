@@ -267,6 +267,8 @@ const getCustomFieldValues = `-- name: GetCustomFieldValues :many
 SELECT 
     custom_fields.custom_field_name
     ,custom_field_values.custom_field_value
+    ,custom_fields.custom_field_type
+    ,custom_field_values.custom_field_id
     ,custom_field_values.id
 FROM custom_field_values
 JOIN custom_fields ON custom_fields.id = custom_field_values.custom_field_id
@@ -277,6 +279,8 @@ ORDER BY custom_fields.created_at
 type GetCustomFieldValuesRow struct {
 	CustomFieldName  string    `json:"custom_field_name"`
 	CustomFieldValue string    `json:"custom_field_value"`
+	CustomFieldType  string    `json:"custom_field_type"`
+	CustomFieldID    uuid.UUID `json:"custom_field_id"`
 	ID               uuid.UUID `json:"id"`
 }
 
@@ -289,7 +293,13 @@ func (q *Queries) GetCustomFieldValues(ctx context.Context, itemID uuid.UUID) ([
 	var items []GetCustomFieldValuesRow
 	for rows.Next() {
 		var i GetCustomFieldValuesRow
-		if err := rows.Scan(&i.CustomFieldName, &i.CustomFieldValue, &i.ID); err != nil {
+		if err := rows.Scan(
+			&i.CustomFieldName,
+			&i.CustomFieldValue,
+			&i.CustomFieldType,
+			&i.CustomFieldID,
+			&i.ID,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -359,6 +369,41 @@ func (q *Queries) GetItemById(ctx context.Context, id uuid.UUID) (Item, error) {
 		&i.Username,
 	)
 	return i, err
+}
+
+const getItemIdsByType = `-- name: GetItemIdsByType :many
+SELECT id, item_name, item_description
+FROM items
+WHERE type_id = $1
+`
+
+type GetItemIdsByTypeRow struct {
+	ID              uuid.UUID `json:"id"`
+	ItemName        string    `json:"item_name"`
+	ItemDescription string    `json:"item_description"`
+}
+
+func (q *Queries) GetItemIdsByType(ctx context.Context, typeID uuid.UUID) ([]GetItemIdsByTypeRow, error) {
+	rows, err := q.db.QueryContext(ctx, getItemIdsByType, typeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetItemIdsByTypeRow
+	for rows.Next() {
+		var i GetItemIdsByTypeRow
+		if err := rows.Scan(&i.ID, &i.ItemName, &i.ItemDescription); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getItems = `-- name: GetItems :many
