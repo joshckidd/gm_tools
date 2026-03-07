@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -80,4 +81,97 @@ func (q *Queries) CreateInstance(ctx context.Context, arg CreateInstanceParams) 
 		&i.Username,
 	)
 	return i, err
+}
+
+const getCustomFieldInstanceValues = `-- name: GetCustomFieldInstanceValues :many
+SELECT 
+    custom_field_instance_values.custom_field_value
+    ,custom_fields.custom_field_name
+FROM custom_field_instance_values
+JOIN custom_fields ON custom_fields.id = custom_field_instance_values.custom_field_id
+WHERE custom_field_instance_values.instance_id = $1
+`
+
+type GetCustomFieldInstanceValuesRow struct {
+	CustomFieldValue string `json:"custom_field_value"`
+	CustomFieldName  string `json:"custom_field_name"`
+}
+
+func (q *Queries) GetCustomFieldInstanceValues(ctx context.Context, instanceID uuid.UUID) ([]GetCustomFieldInstanceValuesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCustomFieldInstanceValues, instanceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCustomFieldInstanceValuesRow
+	for rows.Next() {
+		var i GetCustomFieldInstanceValuesRow
+		if err := rows.Scan(&i.CustomFieldValue, &i.CustomFieldName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getInstances = `-- name: GetInstances :many
+SELECT 
+    instances.id
+    ,instances.created_at
+    ,instances.updated_at
+    ,items.item_name
+    ,items.item_description
+    ,items.type_id
+    ,instances.username
+FROM instances
+JOIN items ON items.id = instances.item_id
+WHERE instances.username = $1
+ORDER BY instances.created_at
+`
+
+type GetInstancesRow struct {
+	ID              uuid.UUID `json:"id"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	ItemName        string    `json:"item_name"`
+	ItemDescription string    `json:"item_description"`
+	TypeID          uuid.UUID `json:"type_id"`
+	Username        string    `json:"username"`
+}
+
+func (q *Queries) GetInstances(ctx context.Context, username string) ([]GetInstancesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getInstances, username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetInstancesRow
+	for rows.Next() {
+		var i GetInstancesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ItemName,
+			&i.ItemDescription,
+			&i.TypeID,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

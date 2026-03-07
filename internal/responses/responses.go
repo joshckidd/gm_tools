@@ -791,6 +791,27 @@ func PostInstances(w http.ResponseWriter, r *http.Request, user string, cfg *Api
 	respondWithJSON(w, 200, instances)
 }
 
+func GetInstances(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
+	baseInstances, err := cfg.DB.GetInstances(r.Context(), user)
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+
+	instances := make([]map[string]string, len(baseInstances))
+
+	for i := range baseInstances {
+		instance, err := fillOutInstanceFields(baseInstances[i], r, cfg)
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+		instances[i] = instance
+	}
+
+	respondWithJSON(w, 200, instances)
+}
+
 func fillOutItemFields(baseItem database.Item, r *http.Request, cfg *ApiConfig) (map[string]string, error) {
 	item := map[string]string{
 		"id":          baseItem.ID.String(),
@@ -812,6 +833,29 @@ func fillOutItemFields(baseItem database.Item, r *http.Request, cfg *ApiConfig) 
 	}
 
 	return item, nil
+}
+
+func fillOutInstanceFields(baseInstance database.GetInstancesRow, r *http.Request, cfg *ApiConfig) (map[string]string, error) {
+	instance := map[string]string{
+		"id":          baseInstance.ID.String(),
+		"name":        baseInstance.ItemName,
+		"description": baseInstance.ItemDescription,
+		"type":        baseInstance.TypeID.String(),
+		"created_at":  baseInstance.CreatedAt.String(),
+		"updated_at":  baseInstance.UpdatedAt.String(),
+		"username":    baseInstance.Username,
+	}
+
+	customFields, err := cfg.DB.GetCustomFieldInstanceValues(r.Context(), baseInstance.ID)
+	if err != nil {
+		return map[string]string{}, err
+	}
+
+	for j := range customFields {
+		instance[customFields[j].CustomFieldName] = customFields[j].CustomFieldValue
+	}
+
+	return instance, nil
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload any) {
