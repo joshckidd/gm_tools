@@ -38,6 +38,10 @@ func main() {
 			if err != nil {
 				return err
 			}
+			err = dbQueries.DeleteOldInstances(context.Background(), time.Now().Add(time.Duration(-keepRollDays)*24*time.Hour))
+			if err != nil {
+				return err
+			}
 		}
 	}()
 

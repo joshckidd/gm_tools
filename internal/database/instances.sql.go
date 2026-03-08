@@ -83,6 +83,16 @@ func (q *Queries) CreateInstance(ctx context.Context, arg CreateInstanceParams) 
 	return i, err
 }
 
+const deleteOldInstances = `-- name: DeleteOldInstances :exec
+DELETE FROM instances
+WHERE created_at < $1
+`
+
+func (q *Queries) DeleteOldInstances(ctx context.Context, createdAt time.Time) error {
+	_, err := q.db.ExecContext(ctx, deleteOldInstances, createdAt)
+	return err
+}
+
 const getCustomFieldInstanceValues = `-- name: GetCustomFieldInstanceValues :many
 SELECT 
     custom_field_instance_values.custom_field_value

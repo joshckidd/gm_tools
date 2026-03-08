@@ -43,3 +43,7 @@ SELECT
 FROM custom_field_instance_values
 JOIN custom_fields ON custom_fields.id = custom_field_instance_values.custom_field_id
 WHERE custom_field_instance_values.instance_id = $1;
+
+-- name: DeleteOldInstances :exec
+DELETE FROM instances
+WHERE created_at < $1;
