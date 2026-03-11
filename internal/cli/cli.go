@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/joshckidd/gm_tools/internal/config"
+	"github.com/joshckidd/gm_tools/internal/database"
 	"github.com/joshckidd/gm_tools/internal/requests"
 	"github.com/joshckidd/gm_tools/internal/rolls"
 )
@@ -53,8 +54,12 @@ func HandlerList(s *State, cmd Command) error {
 		if err != nil {
 			return err
 		}
+	case "types":
+		err := listTypes(s.Cfg)
+		if err != nil {
+			return err
+		}
 	}
-
 	return nil
 }
 
@@ -89,7 +94,7 @@ func printRoll(tot rolls.RollTotalResult) {
 }
 
 func listRolls(cfg *config.CliConfig) error {
-	rolls, err := requests.GetRolls(cfg)
+	rolls, err := requests.GetRecords[rolls.RollTotalResult](cfg, "rolls")
 	if err != nil {
 		return err
 	}
@@ -97,6 +102,19 @@ func listRolls(cfg *config.CliConfig) error {
 	for i := range rolls {
 		fmt.Printf("Roll %d - %s:\n", i+1, rolls[i].RollString)
 		printRoll(rolls[i])
+	}
+
+	return nil
+}
+
+func listTypes(cfg *config.CliConfig) error {
+	types, err := requests.GetRecords[database.Type](cfg, "types")
+	if err != nil {
+		return err
+	}
+
+	for i := range types {
+		fmt.Printf("%d. ID: %s\n   Name: %s\n", i+1, types[i].ID, types[i].TypeName)
 	}
 
 	return nil

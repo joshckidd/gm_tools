@@ -31,18 +31,18 @@ func GenerateRoll(cfg *config.CliConfig, rollString string) (rolls.RollTotalResu
 	return rollResult, nil
 }
 
-func GetRolls(cfg *config.CliConfig) ([]rolls.RollTotalResult, error) {
-	body, err := sendRequest(*cfg, "rolls", "GET", "")
+func GetRecords[T any](cfg *config.CliConfig, endpoint string) ([]T, error) {
+	body, err := sendRequest(*cfg, endpoint, "GET", "")
 	if err != nil {
-		return []rolls.RollTotalResult{}, err
+		return []T{}, err
 	}
 
-	var rollResult []rolls.RollTotalResult
-	err = json.Unmarshal(body, &rollResult)
+	var records []T
+	err = json.Unmarshal(body, &records)
 	if err != nil {
-		return []rolls.RollTotalResult{}, err
+		return []T{}, err
 	}
-	return rollResult, nil
+	return records, nil
 }
 
 func LoginUser(cfg *config.CliConfig, username, password string) error {
