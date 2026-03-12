@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/joshckidd/gm_tools/internal/config"
 	"github.com/joshckidd/gm_tools/internal/database"
 	"github.com/joshckidd/gm_tools/internal/requests"
@@ -56,6 +57,11 @@ func HandlerList(s *State, cmd Command) error {
 		}
 	case "types":
 		err := listTypes(s.Cfg)
+		if err != nil {
+			return err
+		}
+	case "custom_fields":
+		err := listCustomFields(s.Cfg)
 		if err != nil {
 			return err
 		}
@@ -118,4 +124,39 @@ func listTypes(cfg *config.CliConfig) error {
 	}
 
 	return nil
+}
+
+func listCustomFields(cfg *config.CliConfig) error {
+	fields, err := requests.GetRecords[database.CustomField](cfg, "custom_fields")
+	if err != nil {
+		return err
+	}
+
+	typeMap, err := getTypeMap(cfg)
+	if err != nil {
+		return err
+	}
+
+	for i := range fields {
+		fmt.Printf("%d. ID: %s\n   Name: %s\n   Type: %s\n",
+			i+1,
+			fields[i].ID, fields[i].CustomFieldName,
+			typeMap[fields[i].TypeID])
+	}
+
+	return nil
+}
+
+func getTypeMap(cfg *config.CliConfig) (map[uuid.UUID]string, error) {
+	types, err := requests.GetRecords[database.Type](cfg, "types")
+	if err != nil {
+		return map[uuid.UUID]string{}, err
+	}
+
+	typeMap := make(map[uuid.UUID]string, len(types))
+	for i := range types {
+		typeMap[types[i].ID] = types[i].TypeName
+	}
+
+	return typeMap, nil
 }
