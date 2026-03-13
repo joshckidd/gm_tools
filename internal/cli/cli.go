@@ -65,6 +65,16 @@ func HandlerList(s *State, cmd Command) error {
 		if err != nil {
 			return err
 		}
+	case "items":
+		err := listItems(s.Cfg)
+		if err != nil {
+			return err
+		}
+	case "instances":
+		err := listInstances(s.Cfg)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -140,11 +150,55 @@ func listCustomFields(cfg *config.CliConfig) error {
 	for i := range fields {
 		fmt.Printf("%d. ID: %s\n   Name: %s\n   Type: %s\n",
 			i+1,
-			fields[i].ID, fields[i].CustomFieldName,
-			typeMap[fields[i].TypeID])
+			fields[i].ID,
+			fields[i].CustomFieldName,
+			typeMap[fields[i].TypeID],
+		)
 	}
 
 	return nil
+}
+
+func listItems(cfg *config.CliConfig) error {
+	items, err := requests.GetRecords[map[string]string](cfg, "items")
+	if err != nil {
+		return err
+	}
+
+	printItems(cfg, items)
+
+	return nil
+}
+
+func listInstances(cfg *config.CliConfig) error {
+	items, err := requests.GetRecords[map[string]string](cfg, "instances")
+	if err != nil {
+		return err
+	}
+
+	printItems(cfg, items)
+
+	return nil
+}
+
+func printItems(cfg *config.CliConfig, items []map[string]string) {
+	typeMap, _ := getTypeMap(cfg)
+
+	for i := range items {
+		typeId, _ := uuid.Parse(items[i]["type"])
+		fmt.Printf("%d. ID: %s\n   Type: %s\n   Name: %s\n   Description: %s\n",
+			i+1,
+			items[i]["id"],
+			typeMap[typeId],
+			items[i]["name"],
+			items[i]["description"],
+		)
+		for k, v := range items[i] {
+			if k != "id" && k != "type" && k != "name" && k != "description" && k != "created_at" && k != "updated_at" && k != "username" {
+				fmt.Printf("   %s: %s\n", k, v)
+			}
+		}
+	}
 }
 
 func getTypeMap(cfg *config.CliConfig) (map[uuid.UUID]string, error) {
