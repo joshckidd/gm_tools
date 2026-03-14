@@ -9,39 +9,20 @@ import (
 	"time"
 
 	"github.com/joshckidd/gm_tools/internal/config"
-	"github.com/joshckidd/gm_tools/internal/rolls"
 
 	"net/http"
 	"net/url"
 )
 
-func GenerateRoll(cfg *config.CliConfig, rollString string) (rolls.RollTotalResult, error) {
-	body, err := sendRequest(*cfg, "rolls", "POST", map[string]string{
-		"roll": rollString,
-	})
+func CallApi[T any](cfg *config.CliConfig, endpoint, method string, payload any) (T, error) {
+	var records T
+
+	body, err := sendRequest(*cfg, endpoint, method, payload)
 	if err != nil {
-		return rolls.RollTotalResult{}, err
+		return records, err
 	}
 
-	var rollResult rolls.RollTotalResult
-	err = json.Unmarshal(body, &rollResult)
-	if err != nil {
-		return rolls.RollTotalResult{}, err
-	}
-	return rollResult, nil
-}
-
-func GetRecords[T any](cfg *config.CliConfig, endpoint string) ([]T, error) {
-	body, err := sendRequest(*cfg, endpoint, "GET", "")
-	if err != nil {
-		return []T{}, err
-	}
-
-	var records []T
 	err = json.Unmarshal(body, &records)
-	if err != nil {
-		return []T{}, err
-	}
 	return records, nil
 }
 

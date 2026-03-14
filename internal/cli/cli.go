@@ -38,7 +38,12 @@ func (c *Commands) Run(s *State, cmd Command) error {
 }
 
 func HandlerRoll(s *State, cmd Command) error {
-	tot, err := requests.GenerateRoll(s.Cfg, cmd.Args[0])
+	tot, err := requests.CallApi[rolls.RollTotalResult](
+		s.Cfg,
+		"rolls",
+		"POST",
+		map[string]string{"roll": cmd.Args[0]},
+	)
 	if err != nil {
 		return err
 	}
@@ -97,6 +102,29 @@ func HandlerLogin(s *State, cmd Command) error {
 	return nil
 }
 
+func HandlerGenerate(s *State, cmd Command) error {
+	if len(cmd.Args) < 2 {
+		return errors.New("Login command requires two arguments: item type, number")
+	}
+
+	instances, err := requests.CallApi[[]map[string]string](
+		s.Cfg,
+		"instances",
+		"POST",
+		map[string]string{
+			"type":   cmd.Args[0],
+			"number": cmd.Args[1],
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	printItems(s.Cfg, instances)
+
+	return nil
+}
+
 func printRoll(tot rolls.RollTotalResult) {
 	fmt.Printf("total: %d\n", tot.TotalResult)
 
@@ -110,7 +138,7 @@ func printRoll(tot rolls.RollTotalResult) {
 }
 
 func listRolls(cfg *config.CliConfig) error {
-	rolls, err := requests.GetRecords[rolls.RollTotalResult](cfg, "rolls")
+	rolls, err := requests.CallApi[[]rolls.RollTotalResult](cfg, "rolls", "GET", "")
 	if err != nil {
 		return err
 	}
@@ -124,7 +152,7 @@ func listRolls(cfg *config.CliConfig) error {
 }
 
 func listTypes(cfg *config.CliConfig) error {
-	types, err := requests.GetRecords[database.Type](cfg, "types")
+	types, err := requests.CallApi[[]database.Type](cfg, "types", "GET", "")
 	if err != nil {
 		return err
 	}
@@ -137,7 +165,7 @@ func listTypes(cfg *config.CliConfig) error {
 }
 
 func listCustomFields(cfg *config.CliConfig) error {
-	fields, err := requests.GetRecords[database.CustomField](cfg, "custom_fields")
+	fields, err := requests.CallApi[[]database.CustomField](cfg, "custom_fields", "GET", "")
 	if err != nil {
 		return err
 	}
@@ -160,7 +188,7 @@ func listCustomFields(cfg *config.CliConfig) error {
 }
 
 func listItems(cfg *config.CliConfig) error {
-	items, err := requests.GetRecords[map[string]string](cfg, "items")
+	items, err := requests.CallApi[[]map[string]string](cfg, "items", "GET", "")
 	if err != nil {
 		return err
 	}
@@ -171,12 +199,12 @@ func listItems(cfg *config.CliConfig) error {
 }
 
 func listInstances(cfg *config.CliConfig) error {
-	items, err := requests.GetRecords[map[string]string](cfg, "instances")
+	instances, err := requests.CallApi[[]map[string]string](cfg, "instances", "GET", "")
 	if err != nil {
 		return err
 	}
 
-	printItems(cfg, items)
+	printItems(cfg, instances)
 
 	return nil
 }
@@ -202,7 +230,7 @@ func printItems(cfg *config.CliConfig, items []map[string]string) {
 }
 
 func getTypeMap(cfg *config.CliConfig) (map[uuid.UUID]string, error) {
-	types, err := requests.GetRecords[database.Type](cfg, "types")
+	types, err := requests.CallApi[[]database.Type](cfg, "types", "GET", "")
 	if err != nil {
 		return map[uuid.UUID]string{}, err
 	}
