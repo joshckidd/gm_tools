@@ -54,34 +54,22 @@ func HandlerRoll(s *State, cmd Command) error {
 }
 
 func HandlerList(s *State, cmd Command) error {
+	var err error
 	switch cmd.Args[0] {
 	case "rolls":
-		err := listRolls(s.Cfg)
-		if err != nil {
-			return err
-		}
+		err = listRolls(s.Cfg)
 	case "types":
-		err := listTypes(s.Cfg)
-		if err != nil {
-			return err
-		}
+		err = listTypes(s.Cfg)
 	case "custom_fields":
-		err := listCustomFields(s.Cfg)
-		if err != nil {
-			return err
-		}
+		err = listCustomFields(s.Cfg)
 	case "items":
-		err := listItems(s.Cfg)
-		if err != nil {
-			return err
-		}
+		err = listItems(s.Cfg)
 	case "instances":
-		err := listInstances(s.Cfg)
-		if err != nil {
-			return err
-		}
+		err = listInstances(s.Cfg)
+	default:
+		fmt.Println("Invalid type provided for list.")
 	}
-	return nil
+	return err
 }
 
 func HandlerLogin(s *State, cmd Command) error {

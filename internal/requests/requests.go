@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/joshckidd/gm_tools/internal/config"
 
@@ -23,16 +22,11 @@ func CallApi[T any](cfg *config.CliConfig, endpoint, method string, payload any)
 	}
 
 	err = json.Unmarshal(body, &records)
-	return records, nil
+	return records, err
 }
 
 func LoginUser(cfg *config.CliConfig, username, password string) error {
-	loginResult, err := CallApi[struct {
-		Username  string    `json:"username"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Token     string    `json:"token"`
-	}](
+	loginResult, err := CallApi[map[string]string](
 		cfg,
 		"login",
 		"POST",
@@ -44,7 +38,7 @@ func LoginUser(cfg *config.CliConfig, username, password string) error {
 		return err
 	}
 
-	cfg.CurrentUserToken = loginResult.Token
+	cfg.CurrentUserToken = loginResult["token"]
 	return nil
 }
 
@@ -84,7 +78,7 @@ func sendRequest(cfg config.CliConfig, endpoint, method string, payload any) ([]
 	}
 
 	if res.StatusCode > 299 {
-		return body, fmt.Errorf("Response code: %v", res.StatusCode)
+		return body, fmt.Errorf("Response code: %v\nBody: %v", res.StatusCode, body)
 	}
 
 	return body, nil

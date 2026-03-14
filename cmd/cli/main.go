@@ -28,7 +28,7 @@ func main() {
 
 	args := os.Args
 	if len(args) < 3 {
-		fmt.Println("I require an argument!")
+		fmt.Println("Please provide a command and at least one argument.")
 		os.Exit(1)
 	}
 
