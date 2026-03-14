@@ -95,11 +95,8 @@ func HandlerLogin(s *State, cmd Command) error {
 	}
 
 	err = s.Cfg.SetToken()
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func HandlerGenerate(s *State, cmd Command) error {

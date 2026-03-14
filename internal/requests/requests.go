@@ -27,24 +27,23 @@ func CallApi[T any](cfg *config.CliConfig, endpoint, method string, payload any)
 }
 
 func LoginUser(cfg *config.CliConfig, username, password string) error {
-	body, err := sendRequest(*cfg, "login", "POST", map[string]string{
-		"username": username,
-		"password": password,
-	})
-	if err != nil {
-		return err
-	}
-
-	var loginResult struct {
+	loginResult, err := CallApi[struct {
 		Username  string    `json:"username"`
 		CreatedAt time.Time `json:"created_at"`
 		UpdatedAt time.Time `json:"updated_at"`
 		Token     string    `json:"token"`
-	}
-	err = json.Unmarshal(body, &loginResult)
+	}](
+		cfg,
+		"login",
+		"POST",
+		map[string]string{
+			"username": username,
+			"password": password,
+		})
 	if err != nil {
 		return err
 	}
+
 	cfg.CurrentUserToken = loginResult.Token
 	return nil
 }
