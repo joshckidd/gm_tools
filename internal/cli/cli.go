@@ -55,17 +55,23 @@ func HandlerRoll(s *State, cmd Command) error {
 
 func HandlerList(s *State, cmd Command) error {
 	var err error
+	var ids []string
+
+	if len(cmd.Args) > 1 {
+		ids = cmd.Args[1:]
+	} else {
+		ids = []string{}
+	}
+
 	switch cmd.Args[0] {
 	case "rolls":
-		err = listRolls(s.Cfg)
+		err = listRecords(s.Cfg, cmd.Args[0], []string{}, printRolls)
 	case "types":
-		err = listTypes(s.Cfg)
+		err = listRecords(s.Cfg, cmd.Args[0], ids, printTypes)
 	case "custom_fields":
-		err = listCustomFields(s.Cfg)
-	case "items":
-		err = listItems(s.Cfg)
-	case "instances":
-		err = listInstances(s.Cfg)
+		err = listRecords(s.Cfg, cmd.Args[0], ids, printCustomFields)
+	case "items", "instances":
+		err = listRecords(s.Cfg, cmd.Args[0], ids, printItems)
 	default:
 		fmt.Println("Invalid type provided for list.")
 	}
@@ -122,43 +128,55 @@ func printRoll(tot rolls.RollTotalResult) {
 	}
 }
 
-func listRolls(cfg *config.CliConfig) error {
-	rolls, err := requests.CallApi[[]rolls.RollTotalResult](cfg, "rolls", "GET", "")
-	if err != nil {
-		return err
-	}
-
+func printRolls(_ *config.CliConfig, rolls []rolls.RollTotalResult) {
 	for i := range rolls {
 		fmt.Printf("Roll %d - %s:\n", i+1, rolls[i].RollString)
 		printRoll(rolls[i])
 	}
-
-	return nil
 }
 
-func listTypes(cfg *config.CliConfig) error {
-	types, err := requests.CallApi[[]database.Type](cfg, "types", "GET", "")
+func listRecords[T any](cfg *config.CliConfig, endpoint string, ids []string, printRecords func(*config.CliConfig, []T)) error {
+	records, err := getOneOrMore[T](cfg, endpoint, "GET", ids)
 	if err != nil {
 		return err
 	}
 
+	printRecords(cfg, records)
+
+	return nil
+}
+
+func getOneOrMore[T any](cfg *config.CliConfig, endpoint, method string, ids []string) ([]T, error) {
+	var records []T
+	var err error
+
+	if len(ids) == 0 {
+		records, err = requests.CallApi[[]T](cfg, endpoint, method, "")
+		if err != nil {
+			return records, err
+		}
+	} else {
+		for i := range ids {
+			endpointId := fmt.Sprintf("%s/%s", endpoint, ids[i])
+			r, err := requests.CallApi[T](cfg, endpointId, "GET", "")
+			if err != nil {
+				return []T{}, err
+			}
+			records = append(records, r)
+		}
+	}
+
+	return records, nil
+}
+
+func printTypes(_ *config.CliConfig, types []database.Type) {
 	for i := range types {
 		fmt.Printf("%d. ID: %s\n   Name: %s\n", i+1, types[i].ID, types[i].TypeName)
 	}
-
-	return nil
 }
 
-func listCustomFields(cfg *config.CliConfig) error {
-	fields, err := requests.CallApi[[]database.CustomField](cfg, "custom_fields", "GET", "")
-	if err != nil {
-		return err
-	}
-
-	typeMap, err := getTypeMap(cfg)
-	if err != nil {
-		return err
-	}
+func printCustomFields(cfg *config.CliConfig, fields []database.CustomField) {
+	typeMap, _ := getTypeMap(cfg)
 
 	for i := range fields {
 		fmt.Printf("%d. ID: %s\n   Name: %s\n   Type: %s\n",
@@ -168,30 +186,6 @@ func listCustomFields(cfg *config.CliConfig) error {
 			typeMap[fields[i].TypeID],
 		)
 	}
-
-	return nil
-}
-
-func listItems(cfg *config.CliConfig) error {
-	items, err := requests.CallApi[[]map[string]string](cfg, "items", "GET", "")
-	if err != nil {
-		return err
-	}
-
-	printItems(cfg, items)
-
-	return nil
-}
-
-func listInstances(cfg *config.CliConfig) error {
-	instances, err := requests.CallApi[[]map[string]string](cfg, "instances", "GET", "")
-	if err != nil {
-		return err
-	}
-
-	printItems(cfg, instances)
-
-	return nil
 }
 
 func printItems(cfg *config.CliConfig, items []map[string]string) {

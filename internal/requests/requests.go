@@ -78,7 +78,7 @@ func sendRequest(cfg config.CliConfig, endpoint, method string, payload any) ([]
 	}
 
 	if res.StatusCode > 299 {
-		return body, fmt.Errorf("Response code: %v\nBody: %v", res.StatusCode, body)
+		return body, fmt.Errorf("Response code: %v\nBody: %s", res.StatusCode, string(body))
 	}
 
 	return body, nil
