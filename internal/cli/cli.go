@@ -78,6 +78,32 @@ func HandlerList(s *State, cmd Command) error {
 	return err
 }
 
+func HandlerDelete(s *State, cmd Command) error {
+	var ids []string
+
+	if len(cmd.Args) < 2 {
+		return errors.New("Delete command requires at least two arguments: type, one or more ids")
+	}
+
+	ids = cmd.Args[1:]
+
+	switch cmd.Args[0] {
+	case "types", "custom_fields", "items":
+		for i := range ids {
+			endpoint := fmt.Sprintf("%s/%s", cmd.Args[0], ids[i])
+			_, err := requests.CallApi[string](s.Cfg, endpoint, "DELETE", "")
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Deleted %s: %s\n", cmd.Args[0], ids[i])
+		}
+
+	default:
+		fmt.Println("Invalid type provided for delete.")
+	}
+	return nil
+}
+
 func HandlerLogin(s *State, cmd Command) error {
 	if len(cmd.Args) < 2 {
 		return errors.New("Login command requires two arguments: username, password")
@@ -179,11 +205,12 @@ func printCustomFields(cfg *config.CliConfig, fields []database.CustomField) {
 	typeMap, _ := getTypeMap(cfg)
 
 	for i := range fields {
-		fmt.Printf("%d. ID: %s\n   Name: %s\n   Type: %s\n",
+		fmt.Printf("%d. ID: %s\n   Name: %s\n   Item Type: %s\n   Custom Field Type: %s\n",
 			i+1,
 			fields[i].ID,
 			fields[i].CustomFieldName,
 			typeMap[fields[i].TypeID],
+			fields[i].CustomFieldType,
 		)
 	}
 }
