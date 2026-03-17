@@ -73,7 +73,7 @@ func HandlerList(s *State, cmd Command) error {
 	case "items", "instances":
 		err = listRecords(s.Cfg, cmd.Args[0], ids, printItems)
 	default:
-		fmt.Println("Invalid type provided for list.")
+		return errors.New("Invalid table provided for list.")
 	}
 	return err
 }
@@ -82,7 +82,7 @@ func HandlerDelete(s *State, cmd Command) error {
 	var ids []string
 
 	if len(cmd.Args) < 2 {
-		return errors.New("Delete command requires at least two arguments: type, one or more ids")
+		return errors.New("Delete command requires at least two arguments: table, one or more ids")
 	}
 
 	ids = cmd.Args[1:]
@@ -99,9 +99,43 @@ func HandlerDelete(s *State, cmd Command) error {
 		}
 
 	default:
-		fmt.Println("Invalid type provided for delete.")
+		return errors.New("Invalid table provided for delete.")
 	}
 	return nil
+}
+
+func HandlerCreate(s *State, cmd Command) error {
+	switch cmd.Args[0] {
+	case "types":
+		if len(cmd.Args) < 2 {
+			return errors.New("Create command for types requires two arguments: table, type name")
+		}
+
+		t, err := requests.CallApi[database.Type](s.Cfg, cmd.Args[0], "POST", map[string]string{
+			"type": cmd.Args[1],
+		})
+
+		if err == nil {
+			printTypes(s.Cfg, []database.Type{t})
+		}
+		return err
+	case "custom_fields":
+		if len(cmd.Args) < 4 {
+			return errors.New("Create command for types requires four arguments: table, item type, custom field name, custom field type")
+		}
+		cf, err := requests.CallApi[database.CustomField](s.Cfg, cmd.Args[0], "POST", map[string]string{
+			"type":       cmd.Args[1],
+			"field_name": cmd.Args[2],
+			"field_type": cmd.Args[3],
+		})
+
+		if err == nil {
+			printCustomFields(s.Cfg, []database.CustomField{cf})
+		}
+		return err
+	default:
+		return errors.New("Invalid table provided for delete.")
+	}
 }
 
 func HandlerLogin(s *State, cmd Command) error {
