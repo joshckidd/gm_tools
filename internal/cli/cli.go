@@ -121,7 +121,7 @@ func HandlerCreate(s *State, cmd Command) error {
 		return err
 	case "custom_fields":
 		if len(cmd.Args) < 4 {
-			return errors.New("Create command for types requires four arguments: table, item type, custom field name, custom field type")
+			return errors.New("Create command for custom fields requires four arguments: table, item type, custom field name, custom field type")
 		}
 		cf, err := requests.CallApi[database.CustomField](s.Cfg, cmd.Args[0], "POST", map[string]string{
 			"type":       cmd.Args[1],
@@ -134,7 +134,42 @@ func HandlerCreate(s *State, cmd Command) error {
 		}
 		return err
 	default:
-		return errors.New("Invalid table provided for delete.")
+		return errors.New("Invalid table provided for create.")
+	}
+}
+
+func HandlerUpdate(s *State, cmd Command) error {
+	switch cmd.Args[0] {
+	case "types":
+		if len(cmd.Args) < 3 {
+			return errors.New("Update command for types requires three arguments: table, id, type name")
+		}
+		endpoint := fmt.Sprintf("%s/%s", cmd.Args[0], cmd.Args[1])
+		t, err := requests.CallApi[database.Type](s.Cfg, endpoint, "PUT", map[string]string{
+			"type": cmd.Args[2],
+		})
+
+		if err == nil {
+			printTypes(s.Cfg, []database.Type{t})
+		}
+		return err
+	case "custom_fields":
+		if len(cmd.Args) < 5 {
+			return errors.New("Update command for custom fields requires five arguments: table, id, item type, custom field name, custom field type")
+		}
+		endpoint := fmt.Sprintf("%s/%s", cmd.Args[0], cmd.Args[1])
+		cf, err := requests.CallApi[database.CustomField](s.Cfg, endpoint, "PUT", map[string]string{
+			"type":       cmd.Args[2],
+			"field_name": cmd.Args[3],
+			"field_type": cmd.Args[4],
+		})
+
+		if err == nil {
+			printCustomFields(s.Cfg, []database.CustomField{cf})
+		}
+		return err
+	default:
+		return errors.New("Invalid table provided for update.")
 	}
 }
 
