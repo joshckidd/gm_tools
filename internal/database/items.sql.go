@@ -372,27 +372,29 @@ func (q *Queries) GetItemById(ctx context.Context, id uuid.UUID) (Item, error) {
 }
 
 const getItemIdsByType = `-- name: GetItemIdsByType :many
-SELECT id, item_name, item_description
+SELECT id, created_at, updated_at, item_name, item_description, type_id, username
 FROM items
 WHERE type_id = $1
 `
 
-type GetItemIdsByTypeRow struct {
-	ID              uuid.UUID `json:"id"`
-	ItemName        string    `json:"item_name"`
-	ItemDescription string    `json:"item_description"`
-}
-
-func (q *Queries) GetItemIdsByType(ctx context.Context, typeID uuid.UUID) ([]GetItemIdsByTypeRow, error) {
+func (q *Queries) GetItemIdsByType(ctx context.Context, typeID uuid.UUID) ([]Item, error) {
 	rows, err := q.db.QueryContext(ctx, getItemIdsByType, typeID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetItemIdsByTypeRow
+	var items []Item
 	for rows.Next() {
-		var i GetItemIdsByTypeRow
-		if err := rows.Scan(&i.ID, &i.ItemName, &i.ItemDescription); err != nil {
+		var i Item
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ItemName,
+			&i.ItemDescription,
+			&i.TypeID,
+			&i.Username,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

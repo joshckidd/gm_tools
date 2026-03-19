@@ -209,6 +209,21 @@ func HandlerLoad(s *State, cmd Command) error {
 	return nil
 }
 
+func HandlerExport(s *State, cmd Command) error {
+	if len(cmd.Args) < 2 {
+		return errors.New("Delete command requires at least two arguments: item type, csv file name")
+	}
+
+	endpoint := fmt.Sprintf("items?type=%s", cmd.Args[0])
+
+	records, err := requests.CallApi[[]map[string]string](s.Cfg, endpoint, "GET", "")
+	if err != nil {
+		return err
+	}
+
+	return createCSV(s.Cfg, cmd.Args[1], records)
+}
+
 func HandlerLogin(s *State, cmd Command) error {
 	if len(cmd.Args) < 2 {
 		return errors.New("Login command requires two arguments: username, password")
@@ -383,4 +398,57 @@ func parseCSV(filename string) ([]map[string]string, error) {
 	}
 
 	return records, nil
+}
+
+func createCSV(cfg *config.CliConfig, filename string, records []map[string]string) error {
+	if len(records) == 0 {
+		return errors.New("No records to export.")
+	}
+	csvFile, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer csvFile.Close()
+
+	writer := csv.NewWriter(csvFile)
+	headerMap := make(map[string]int, len(records[0]))
+	typeMap, err := getTypeMap(cfg)
+	if err != nil {
+		return err
+	}
+
+	for i, record := range records {
+		if i == 0 {
+			j := 0
+			outRow := make([]string, len(record))
+			for key := range record {
+				headerMap[key] = j
+				outRow[j] = key
+				j += 1
+			}
+			err = writer.Write(outRow)
+			if err != nil {
+				return err
+			}
+		}
+
+		outRow := make([]string, len(record))
+		for key, val := range record {
+			if key == "type" {
+				typeId, err := uuid.Parse(val)
+				if err != nil {
+					return err
+				}
+				outRow[headerMap[key]] = typeMap[typeId]
+			} else {
+				outRow[headerMap[key]] = val
+			}
+		}
+		err = writer.Write(outRow)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

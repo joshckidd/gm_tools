@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/joshckidd/gm_tools/internal/config"
 
@@ -48,9 +49,14 @@ func sendRequest(cfg config.CliConfig, endpoint, method string, payload any) ([]
 		return []byte{}, err
 	}
 
-	apiURL, err := url.JoinPath(cfg.APIUrl, endpoint)
+	urlParts := strings.Split(endpoint, "?")
+
+	apiURL, err := url.JoinPath(cfg.APIUrl, urlParts[0])
 	if err != nil {
 		return []byte{}, err
+	}
+	if len(urlParts) > 1 {
+		apiURL = fmt.Sprintf("%s?%s", apiURL, urlParts[1])
 	}
 
 	client := &http.Client{}

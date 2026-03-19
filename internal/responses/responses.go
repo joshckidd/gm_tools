@@ -288,10 +288,28 @@ func PostItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 }
 
 func GetItems(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
-	baseItems, err := cfg.DB.GetItems(r.Context())
-	if err != nil {
-		respondWithError(w, 500, err.Error())
-		return
+	t := r.URL.Query().Get("type")
+
+	var baseItems []database.Item
+	var err error
+
+	if t == "" {
+		baseItems, err = cfg.DB.GetItems(r.Context())
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+	} else {
+		itemType, err := cfg.DB.GetTypeByName(r.Context(), t)
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+		baseItems, err = cfg.DB.GetItemIdsByType(r.Context(), itemType.ID)
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
 	}
 
 	items := make([]map[string]string, len(baseItems))

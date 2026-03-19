@@ -146,6 +146,6 @@ WHERE id = $1
 RETURNING id, created_at, updated_at, custom_field_value, custom_field_id, item_id, username;
 
 -- name: GetItemIdsByType :many
-SELECT id, item_name, item_description
+SELECT *
 FROM items
 WHERE type_id = $1;
