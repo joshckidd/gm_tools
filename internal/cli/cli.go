@@ -199,11 +199,26 @@ func HandlerLoad(s *State, cmd Command) error {
 	}
 
 	for _, record := range records {
-		item, err := requests.CallApi[map[string]string](s.Cfg, "items", method, record)
-		if err != nil {
-			return err
+		var endpoint string
+		if cmd.Args[0] == "insert" {
+			endpoint = "items"
+		} else {
+			endpoint = fmt.Sprintf("items/%s", record["id"])
+			delete(record, "id")
 		}
-		fmt.Printf("%sed %s: %s\n", cmd.Args[0], item["type"], item["name"])
+		if cmd.Args[0] == "delete" {
+			id, err := requests.CallApi[string](s.Cfg, endpoint, method, record)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%sed %s\n", cmd.Args[0], id)
+		} else {
+			item, err := requests.CallApi[map[string]string](s.Cfg, endpoint, method, record)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%sed %s: %s\n", cmd.Args[0], item["type"], item["name"])
+		}
 	}
 
 	return nil
@@ -420,13 +435,13 @@ func createCSV(cfg *config.CliConfig, filename string, records []map[string]stri
 	for i, record := range records {
 		if i == 0 {
 			j := 0
-			outRow := make([]string, len(record))
+			headRow := make([]string, len(record))
 			for key := range record {
 				headerMap[key] = j
-				outRow[j] = key
+				headRow[j] = key
 				j += 1
 			}
-			err = writer.Write(outRow)
+			err = writer.Write(headRow)
 			if err != nil {
 				return err
 			}
@@ -449,6 +464,8 @@ func createCSV(cfg *config.CliConfig, filename string, records []map[string]stri
 			return err
 		}
 	}
+
+	writer.Flush()
 
 	return nil
 }
