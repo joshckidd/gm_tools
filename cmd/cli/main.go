@@ -28,6 +28,7 @@ func main() {
 	cliCommands.Register("delete", cli.HandlerDelete)
 	cliCommands.Register("create", cli.HandlerCreate)
 	cliCommands.Register("update", cli.HandlerUpdate)
+	cliCommands.Register("load", cli.HandlerLoad)
 
 	args := os.Args
 	if len(args) < 3 {

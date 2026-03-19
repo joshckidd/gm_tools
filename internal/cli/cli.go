@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"encoding/csv"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 	"github.com/joshckidd/gm_tools/internal/config"
@@ -173,6 +175,40 @@ func HandlerUpdate(s *State, cmd Command) error {
 	}
 }
 
+func HandlerLoad(s *State, cmd Command) error {
+	if len(cmd.Args) < 2 {
+		return errors.New("Delete command requires at least two arguments: operation, csv file name")
+	}
+
+	var method string
+
+	switch cmd.Args[0] {
+	case "insert":
+		method = "POST"
+	case "update":
+		method = "PUT"
+	case "delete":
+		method = "DELETE"
+	default:
+		return fmt.Errorf("%s is not a valid operation.", cmd.Args[0])
+	}
+
+	records, err := parseCSV(cmd.Args[1])
+	if err != nil {
+		return err
+	}
+
+	for _, record := range records {
+		item, err := requests.CallApi[map[string]string](s.Cfg, "items", method, record)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("%sed %s: %s\n", cmd.Args[0], item["type"], item["name"])
+	}
+
+	return nil
+}
+
 func HandlerLogin(s *State, cmd Command) error {
 	if len(cmd.Args) < 2 {
 		return errors.New("Login command requires two arguments: username, password")
@@ -316,4 +352,35 @@ func getTypeMap(cfg *config.CliConfig) (map[uuid.UUID]string, error) {
 	}
 
 	return typeMap, nil
+}
+
+func parseCSV(filename string) ([]map[string]string, error) {
+	csvFile, err := os.Open(filename)
+	if err != nil {
+		return []map[string]string{}, err
+	}
+	defer csvFile.Close()
+
+	reader := csv.NewReader(csvFile)
+
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return []map[string]string{}, err
+	}
+
+	records := make([]map[string]string, len(rows)-1)
+	var headerRow []string
+	for i, row := range rows {
+		if i == 0 {
+			headerRow = row
+		} else {
+			rowMap := make(map[string]string, len(row))
+			for j, v := range row {
+				rowMap[headerRow[j]] = v
+			}
+			records[i-1] = rowMap
+		}
+	}
+
+	return records, nil
 }
