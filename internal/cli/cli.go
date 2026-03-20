@@ -251,6 +251,10 @@ func HandlerLogin(s *State, cmd Command) error {
 
 	err = s.Cfg.SetToken()
 
+	if err == nil {
+		fmt.Printf("%s logged in.\n", cmd.Args[0])
+	}
+
 	return err
 }
 

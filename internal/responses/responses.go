@@ -24,13 +24,13 @@ func (cfg *ApiConfig) ApiLogin(handler func(http.ResponseWriter, *http.Request, 
 	return func(w http.ResponseWriter, r *http.Request) {
 		tok, err := auth.GetBearerToken(r.Header)
 		if err != nil {
-			respondWithError(w, 500, err.Error())
+			respondWithError(w, 401, err.Error())
 			return
 		}
 
 		user, err := auth.ValidateJWT(tok, cfg.TokenSecret)
 		if err != nil {
-			respondWithError(w, 500, err.Error())
+			respondWithError(w, 401, err.Error())
 			return
 		}
 
@@ -46,7 +46,7 @@ func PostRoll(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 
 	err := decoder.Decode(&inParams)
 	if err != nil {
-		respondWithError(w, 400, "Invalid request")
+		respondWithError(w, 400, err.Error())
 		return
 	}
 
@@ -126,7 +126,7 @@ func PostType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 
 	err := decoder.Decode(&inParams)
 	if err != nil {
-		respondWithError(w, 400, "Invalid request")
+		respondWithError(w, 400, err.Error())
 		return
 	}
 
@@ -162,7 +162,7 @@ func PostCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *A
 
 	err := decoder.Decode(&inParams)
 	if err != nil {
-		respondWithError(w, 400, "Invalid request")
+		respondWithError(w, 400, err.Error())
 		return
 	}
 
@@ -207,7 +207,7 @@ func PostItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 
 	err := decoder.Decode(&inParams)
 	if err != nil {
-		respondWithError(w, 400, "Invalid request")
+		respondWithError(w, 400, err.Error())
 		return
 	}
 
@@ -302,7 +302,7 @@ func GetItems(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 	} else {
 		itemType, err := cfg.DB.GetTypeByName(r.Context(), t)
 		if err != nil {
-			respondWithError(w, 500, err.Error())
+			respondWithError(w, 422, "Bad value passed for 'type'")
 			return
 		}
 		baseItems, err = cfg.DB.GetItemIdsByType(r.Context(), itemType.ID)
@@ -336,7 +336,7 @@ func (cfg *ApiConfig) PostUser(w http.ResponseWriter, r *http.Request) {
 
 	err := decoder.Decode(&inParams)
 	if err != nil {
-		respondWithError(w, 500, "Invalid request")
+		respondWithError(w, 400, err.Error())
 		return
 	}
 
@@ -382,7 +382,7 @@ func (cfg *ApiConfig) UserLogin(w http.ResponseWriter, r *http.Request) {
 	params := loginParam{}
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, 500, "Invalid request")
+		respondWithError(w, 400, err.Error())
 		return
 	}
 
@@ -391,7 +391,8 @@ func (cfg *ApiConfig) UserLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, err.Error())
 		return
 	}
-	tok, err := auth.MakeJWT(user.Username, cfg.TokenSecret, time.Hour)
+	// set JWT expiration here
+	tok, err := auth.MakeJWT(user.Username, cfg.TokenSecret, 4*time.Hour)
 	if err != nil {
 		respondWithError(w, 500, err.Error())
 		return
@@ -617,13 +618,17 @@ func PutItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig
 	}
 
 	item, err := fillOutItemFields(baseItem, r, cfg)
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
 
 	decoder := json.NewDecoder(r.Body)
 	inParams := map[string]string{}
 
 	err = decoder.Decode(&inParams)
 	if err != nil {
-		respondWithError(w, 400, "Invalid request")
+		respondWithError(w, 400, err.Error())
 		return
 	}
 
@@ -657,7 +662,11 @@ func PutItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig
 		item["description"] = inParams["description"]
 	}
 
-	customFields, _ := cfg.DB.GetCustomFieldForType(r.Context(), itemType.ID)
+	customFields, err := cfg.DB.GetCustomFieldForType(r.Context(), itemType.ID)
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
 	customFieldIds := map[string]uuid.UUID{}
 
 	for k := range inParams {
@@ -677,7 +686,11 @@ func PutItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig
 		}
 	}
 
-	customFieldValues, _ := cfg.DB.GetCustomFieldValues(r.Context(), itemId)
+	customFieldValues, err := cfg.DB.GetCustomFieldValues(r.Context(), itemId)
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
 
 	for k := range inParams {
 		if k != "type" && k != "name" && k != "description" && inParams[k] != "" {
@@ -735,7 +748,7 @@ func PostInstances(w http.ResponseWriter, r *http.Request, user string, cfg *Api
 
 	err := decoder.Decode(&inParams)
 	if err != nil {
-		respondWithError(w, 400, "Invalid request")
+		respondWithError(w, 400, err.Error())
 		return
 	}
 
@@ -772,7 +785,11 @@ func PostInstances(w http.ResponseWriter, r *http.Request, user string, cfg *Api
 
 		instMap["id"] = inst.ID.String()
 
-		customFields, _ := cfg.DB.GetCustomFieldValues(r.Context(), items[i].ID)
+		customFields, err := cfg.DB.GetCustomFieldValues(r.Context(), items[i].ID)
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
 
 		for j := range customFields {
 			switch customFields[j].CustomFieldType {
