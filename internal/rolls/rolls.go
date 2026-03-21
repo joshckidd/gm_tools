@@ -1,3 +1,5 @@
+// internal package containing the data types and functions to handle rolls
+
 package rolls
 
 import (
@@ -8,6 +10,7 @@ import (
 	"strings"
 )
 
+// create enums for the aggregate function to be used for rolls and the signum for rolls
 type RollAggregate int
 
 const (
@@ -23,6 +26,8 @@ const (
 	Negative
 )
 
+// RollType contains all of the data points needed for a roll
+// roll strings will be parsed into a slice of RollType
 type RollType struct {
 	Number    int           `json:"number"`
 	Dice      int           `json:"dice"`
@@ -31,6 +36,7 @@ type RollType struct {
 	Exploding bool          `json:"exploding"`
 }
 
+// RollResult holds the result of an individual roll
 type RollResult struct {
 	Type            RollType `json:"type"`
 	RollString      string   `json:"roll_string"`
@@ -38,12 +44,14 @@ type RollResult struct {
 	IndividualRolls []int    `json:"individual_rolls"`
 }
 
+// RollTotalResult is intended to hold the result of a full roll string that is rolled
 type RollTotalResult struct {
 	TotalResult       int          `json:"total_result"`
 	IndividualResults []RollResult `json:"individual_results"`
 	RollString        string       `json:"roll_string"`
 }
 
+// function to compute a roll
 func (r RollType) Roll() RollResult {
 	var finalValue int
 	individualRolls := make([]int, r.Number)
@@ -92,6 +100,7 @@ func (r RollType) Roll() RollResult {
 	}
 }
 
+// function to generate a roll string from a RollType
 func (r RollType) GetRollString() string {
 	var s, a, e, d string
 	switch r.Signum {
@@ -123,6 +132,7 @@ func (r RollType) GetRollString() string {
 	return fmt.Sprintf("%s%s%d%s%s", s, a, r.Number, d, e)
 }
 
+// make all of the rolls for a slice of RollType which is the result of parsing a roll string
 func RollAll(rs []RollType) RollTotalResult {
 	allRolls := make([]RollResult, len(rs))
 	res := 0
@@ -139,6 +149,7 @@ func RollAll(rs []RollType) RollTotalResult {
 	}
 }
 
+// parse a roll string into a slice of RollType
 func ParseRoll(str string) []RollType {
 	r := regexp.MustCompile("([+-])?(min|max|sum)?([0-9]+)d?([0-9]+)?(e)?")
 
@@ -175,14 +186,20 @@ func ParseRoll(str string) []RollType {
 	return res
 }
 
+// select a random element from a slice
+// used for custom_fields with the picklist type
 func randomFromSlice[T any](vals []T) T {
 	return vals[rand.IntN(len(vals))]
 }
 
+// selects a random element from a picklist
+// splits the value on ; and then selects a random element
 func RandomPicklistValue(picklist string) string {
 	return randomFromSlice(strings.Split(picklist, ";"))
 }
 
+// select a random element from a slice multiple times
+// used to select random UUIDs of items from a slice when creating instances
 func RandomFromSliceN[T any](vals []T, n int) []T {
 	res := make([]T, n)
 	for i := range n {

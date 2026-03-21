@@ -1,3 +1,5 @@
+// this internal package holds all of the data structures and handler finctions that power the cli
+
 package cli
 
 import (
@@ -39,6 +41,9 @@ func (c *Commands) Run(s *State, cmd Command) error {
 	return commandFunction(s, cmd)
 }
 
+// handler for the roll command
+// expects a single argument that is a roll string
+// prints the result of a provided roll string
 func HandlerRoll(s *State, cmd Command) error {
 	tot, err := requests.CallApi[rolls.RollTotalResult](
 		s.Cfg,
@@ -55,6 +60,11 @@ func HandlerRoll(s *State, cmd Command) error {
 	return nil
 }
 
+// handler for the list command
+// expects an argument for the type of record to print and an optional number of additional ids for records
+// types of records include rolls, types, custom_fields, items, or instances
+// if no ids are supplied, print all records
+// if ids are provided print just the records that correspond to those ids
 func HandlerList(s *State, cmd Command) error {
 	var err error
 	var ids []string
@@ -80,6 +90,9 @@ func HandlerList(s *State, cmd Command) error {
 	return err
 }
 
+// handler for the delete command
+// expects an argument for the type of record to delete and one or more ids indicating the record(s) to delete
+// types of records include types, custom_fields, items
 func HandlerDelete(s *State, cmd Command) error {
 	var ids []string
 
@@ -106,6 +119,11 @@ func HandlerDelete(s *State, cmd Command) error {
 	return nil
 }
 
+// handler for the create command
+// expects a first argument that indicates creating either types or custom_fields
+// if a type is being created, a second argument is needed indicating the type name
+// if a custom_field is being created, three additional arguments are needed
+// indicating the item type, the custom field name, and the custom field type
 func HandlerCreate(s *State, cmd Command) error {
 	switch cmd.Args[0] {
 	case "types":
@@ -140,6 +158,12 @@ func HandlerCreate(s *State, cmd Command) error {
 	}
 }
 
+// handler for the update command
+// expects a first argument that indicates updating either types or custom_fields
+// expects a second argument that is the id of the record to be updated
+// if a type is being udated, a third argument is needed indicating the type name
+// if a custom_field is being updated, three additional arguments are needed
+// indicating the item type, the custom field name, and the custom field type
 func HandlerUpdate(s *State, cmd Command) error {
 	switch cmd.Args[0] {
 	case "types":
@@ -175,6 +199,10 @@ func HandlerUpdate(s *State, cmd Command) error {
 	}
 }
 
+// handler for the load command
+// expects a first command indicating insert, update, or delete
+// expects a second argument indicating a csv file to be used as source data
+// uses the csv file to insert, update, or delete items
 func HandlerLoad(s *State, cmd Command) error {
 	if len(cmd.Args) < 2 {
 		return errors.New("Delete command requires at least two arguments: operation, csv file name")
@@ -224,6 +252,10 @@ func HandlerLoad(s *State, cmd Command) error {
 	return nil
 }
 
+// handler for the export command
+// expects a first command indicating the item type to export
+// expects a second argument indicating the name of the csv file to be written
+// exports a csv file of all of the items of the provided type
 func HandlerExport(s *State, cmd Command) error {
 	if len(cmd.Args) < 2 {
 		return errors.New("Delete command requires at least two arguments: item type, csv file name")
@@ -239,6 +271,8 @@ func HandlerExport(s *State, cmd Command) error {
 	return createCSV(s.Cfg, cmd.Args[1], records)
 }
 
+// handler for the login command
+// expects the username and password as arguments
 func HandlerLogin(s *State, cmd Command) error {
 	if len(cmd.Args) < 2 {
 		return errors.New("Login command requires two arguments: username, password")
@@ -258,6 +292,10 @@ func HandlerLogin(s *State, cmd Command) error {
 	return err
 }
 
+// handler for the generate command
+// expects a first argument that is an item type
+// expects a second arguent that is a roll string
+// creates instances of items of the type specified in the number of the executed roll string
 func HandlerGenerate(s *State, cmd Command) error {
 	if len(cmd.Args) < 2 {
 		return errors.New("Login command requires two arguments: item type, number")
@@ -281,6 +319,7 @@ func HandlerGenerate(s *State, cmd Command) error {
 	return nil
 }
 
+// used to print a roll
 func printRoll(tot rolls.RollTotalResult) {
 	fmt.Printf("total: %d\n", tot.TotalResult)
 
@@ -293,6 +332,7 @@ func printRoll(tot rolls.RollTotalResult) {
 	}
 }
 
+// used to print multiple rolls
 func printRolls(_ *config.CliConfig, rolls []rolls.RollTotalResult) {
 	for i := range rolls {
 		fmt.Printf("Roll %d - %s:\n", i+1, rolls[i].RollString)
@@ -300,6 +340,7 @@ func printRolls(_ *config.CliConfig, rolls []rolls.RollTotalResult) {
 	}
 }
 
+// used to print one or more records of any type
 func listRecords[T any](cfg *config.CliConfig, endpoint string, ids []string, printRecords func(*config.CliConfig, []T)) error {
 	records, err := getOneOrMore[T](cfg, endpoint, "GET", ids)
 	if err != nil {
@@ -311,6 +352,7 @@ func listRecords[T any](cfg *config.CliConfig, endpoint string, ids []string, pr
 	return nil
 }
 
+// used to get one or more records of any type from the database
 func getOneOrMore[T any](cfg *config.CliConfig, endpoint, method string, ids []string) ([]T, error) {
 	var records []T
 	var err error
@@ -334,12 +376,14 @@ func getOneOrMore[T any](cfg *config.CliConfig, endpoint, method string, ids []s
 	return records, nil
 }
 
+// used to print type records
 func printTypes(_ *config.CliConfig, types []database.Type) {
 	for i := range types {
 		fmt.Printf("%d. ID: %s\n   Name: %s\n", i+1, types[i].ID, types[i].TypeName)
 	}
 }
 
+// used to print custom_field records
 func printCustomFields(cfg *config.CliConfig, fields []database.CustomField) {
 	typeMap, _ := getTypeMap(cfg)
 
@@ -354,6 +398,7 @@ func printCustomFields(cfg *config.CliConfig, fields []database.CustomField) {
 	}
 }
 
+// used to print one or more item/instance records
 func printItems(cfg *config.CliConfig, items []map[string]string) {
 	typeMap, _ := getTypeMap(cfg)
 
@@ -374,6 +419,7 @@ func printItems(cfg *config.CliConfig, items []map[string]string) {
 	}
 }
 
+// create a map of type UUIDs to their names
 func getTypeMap(cfg *config.CliConfig) (map[uuid.UUID]string, error) {
 	types, err := requests.CallApi[[]database.Type](cfg, "types", "GET", "")
 	if err != nil {
@@ -388,6 +434,7 @@ func getTypeMap(cfg *config.CliConfig) (map[uuid.UUID]string, error) {
 	return typeMap, nil
 }
 
+// parse the csv into data structures that can be marshalled into json for the api
 func parseCSV(filename string) ([]map[string]string, error) {
 	csvFile, err := os.Open(filename)
 	if err != nil {
@@ -419,6 +466,7 @@ func parseCSV(filename string) ([]map[string]string, error) {
 	return records, nil
 }
 
+// use a slice of items to create a csv file
 func createCSV(cfg *config.CliConfig, filename string, records []map[string]string) error {
 	if len(records) == 0 {
 		return errors.New("No records to export.")

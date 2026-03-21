@@ -1,3 +1,6 @@
+// most of the functions in this package involve randomness, so they are hard to unit test
+// the function that parses the roll strings is the exception, so let's test it
+
 package rolls
 
 import "testing"

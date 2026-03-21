@@ -1,3 +1,5 @@
+// internal package that provides the functions that generate api responses
+
 package responses
 
 import (
@@ -20,6 +22,7 @@ type ApiConfig struct {
 	TokenSecret string
 }
 
+// a wrapper for all response functions that handles logging the user in before executing the rest of the function
 func (cfg *ApiConfig) ApiLogin(handler func(http.ResponseWriter, *http.Request, string, *ApiConfig)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tok, err := auth.GetBearerToken(r.Header)
@@ -38,6 +41,7 @@ func (cfg *ApiConfig) ApiLogin(handler func(http.ResponseWriter, *http.Request, 
 	}
 }
 
+// handles generating an individual roll
 func PostRoll(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	decoder := json.NewDecoder(r.Body)
 	inParams := struct {
@@ -80,6 +84,7 @@ func PostRoll(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 	respondWithJSON(w, 200, tot)
 }
 
+// handles getting all recent rolls
 func GetRolls(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	userAggregateRolls, err := cfg.DB.GetAggregateRolls(r.Context(), user)
 	if err != nil {
@@ -118,6 +123,7 @@ func GetRolls(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 	respondWithJSON(w, 200, res)
 }
 
+// handles creating a new type
 func PostType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	decoder := json.NewDecoder(r.Body)
 	inParams := struct {
@@ -142,6 +148,7 @@ func PostType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 	respondWithJSON(w, 200, itemType)
 }
 
+// handles getting all types
 func GetTypes(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	itemTypes, err := cfg.DB.GetTypes(r.Context())
 	if err != nil {
@@ -152,6 +159,7 @@ func GetTypes(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 	respondWithJSON(w, 200, itemTypes)
 }
 
+// handles creating a new custom_field
 func PostCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	decoder := json.NewDecoder(r.Body)
 	inParams := struct {
@@ -191,6 +199,7 @@ func PostCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *A
 	respondWithJSON(w, 200, customField)
 }
 
+// handles getting all custom_fields
 func GetCustomFields(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	itemTypes, err := cfg.DB.GetCustomFields(r.Context())
 	if err != nil {
@@ -201,6 +210,7 @@ func GetCustomFields(w http.ResponseWriter, r *http.Request, user string, cfg *A
 	respondWithJSON(w, 200, itemTypes)
 }
 
+// handles creating a new item
 func PostItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	decoder := json.NewDecoder(r.Body)
 	inParams := map[string]string{}
@@ -287,6 +297,7 @@ func PostItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 	respondWithJSON(w, 200, itemMap)
 }
 
+// handles listing all items
 func GetItems(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	t := r.URL.Query().Get("type")
 
@@ -327,6 +338,7 @@ func GetItems(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfi
 	respondWithJSON(w, 200, items)
 }
 
+// handles creating a new user
 func (cfg *ApiConfig) PostUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	inParams := struct {
@@ -365,6 +377,7 @@ func (cfg *ApiConfig) PostUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// handles logging in a user
 func (cfg *ApiConfig) UserLogin(w http.ResponseWriter, r *http.Request) {
 	type loginParam struct {
 		Password string `json:"password"`
@@ -412,6 +425,7 @@ func (cfg *ApiConfig) UserLogin(w http.ResponseWriter, r *http.Request) {
 	respondWithError(w, 401, "Incorrect email or password")
 }
 
+// handles deleting a type by id
 func DeleteType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	typeId, err := uuid.Parse(r.PathValue("typeId"))
 	if err != nil {
@@ -428,6 +442,7 @@ func DeleteType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiCon
 	respondWithJSON(w, 200, typeId)
 }
 
+// handles deleting a custom_field by id
 func DeleteCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	fieldId, err := uuid.Parse(r.PathValue("fieldId"))
 	if err != nil {
@@ -444,6 +459,7 @@ func DeleteCustomField(w http.ResponseWriter, r *http.Request, user string, cfg 
 	respondWithJSON(w, 200, fieldId)
 }
 
+// handles deleting an item by id
 func DeleteItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	itemId, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
@@ -460,6 +476,7 @@ func DeleteItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiCon
 	respondWithJSON(w, 200, itemId)
 }
 
+// handles updating a type by id
 func PutType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	typeId, err := uuid.Parse(r.PathValue("typeId"))
 	if err != nil {
@@ -490,6 +507,7 @@ func PutType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig
 	respondWithJSON(w, 200, itemType)
 }
 
+// handles getting a single type by id
 func GetType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	typeId, err := uuid.Parse(r.PathValue("typeId"))
 	if err != nil {
@@ -506,6 +524,7 @@ func GetType(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig
 	respondWithJSON(w, 200, itemType)
 }
 
+// handles getting a single custom_field by id
 func GetCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	fieldId, err := uuid.Parse(r.PathValue("fieldId"))
 	if err != nil {
@@ -522,6 +541,7 @@ func GetCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *Ap
 	respondWithJSON(w, 200, customField)
 }
 
+// handles getting a single item by id
 func GetItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	itemId, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
@@ -544,6 +564,7 @@ func GetItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig
 	respondWithJSON(w, 200, item)
 }
 
+// handles updating a custom_field by id
 func PutCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	fieldId, err := uuid.Parse(r.PathValue("fieldId"))
 	if err != nil {
@@ -604,6 +625,7 @@ func PutCustomField(w http.ResponseWriter, r *http.Request, user string, cfg *Ap
 	respondWithJSON(w, 200, updatedCustomField)
 }
 
+// handles updating an item by id
 func PutItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	itemId, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
@@ -739,6 +761,7 @@ func PutItem(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig
 	respondWithJSON(w, 200, item)
 }
 
+// handles generating new instances of items
 func PostInstances(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	decoder := json.NewDecoder(r.Body)
 	inParams := struct {
@@ -826,6 +849,7 @@ func PostInstances(w http.ResponseWriter, r *http.Request, user string, cfg *Api
 	respondWithJSON(w, 200, instances)
 }
 
+// handles getting all recent instances
 func GetInstances(w http.ResponseWriter, r *http.Request, user string, cfg *ApiConfig) {
 	baseInstances, err := cfg.DB.GetInstances(r.Context(), user)
 	if err != nil {
@@ -847,6 +871,7 @@ func GetInstances(w http.ResponseWriter, r *http.Request, user string, cfg *ApiC
 	respondWithJSON(w, 200, instances)
 }
 
+// fill out custom field values for base items
 func fillOutItemFields(baseItem database.Item, r *http.Request, cfg *ApiConfig) (map[string]string, error) {
 	item := map[string]string{
 		"id":          baseItem.ID.String(),
@@ -870,6 +895,7 @@ func fillOutItemFields(baseItem database.Item, r *http.Request, cfg *ApiConfig) 
 	return item, nil
 }
 
+// fill out custom field values for base instances
 func fillOutInstanceFields(baseInstance database.GetInstancesRow, r *http.Request, cfg *ApiConfig) (map[string]string, error) {
 	instance := map[string]string{
 		"id":          baseInstance.ID.String(),
@@ -893,6 +919,7 @@ func fillOutInstanceFields(baseInstance database.GetInstancesRow, r *http.Reques
 	return instance, nil
 }
 
+// provide a json http response
 func respondWithJSON(w http.ResponseWriter, code int, payload any) {
 	val, err := json.Marshal(payload)
 	if err != nil {
@@ -905,6 +932,7 @@ func respondWithJSON(w http.ResponseWriter, code int, payload any) {
 	w.Write(val)
 }
 
+// provide an error http response
 func respondWithError(w http.ResponseWriter, code int, msg string) {
 	type returnError struct {
 		Error string `json:"error"`

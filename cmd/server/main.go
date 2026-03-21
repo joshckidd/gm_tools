@@ -1,3 +1,5 @@
+// the main package for the rest api server
+
 package main
 
 import (
@@ -17,11 +19,13 @@ import (
 )
 
 func main() {
+	// load variables from the .env file
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
 	checkMinutes, _ := strconv.Atoi(os.Getenv("CHECK_MINUTES"))
 	keepRollDays, _ := strconv.Atoi(os.Getenv("KEEP_ROLL_DAYS"))
 
+	// connect to the postgres database
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		fmt.Println("Database error.")
@@ -30,6 +34,9 @@ func main() {
 
 	dbQueries := database.New(db)
 
+	// create a function that runs periodically and clears out old rolls and instances
+	// rolls and instances are expected to be temporary
+	// duration to keep old rolls and the interval to check are in the .env file
 	ticker := time.NewTicker(time.Minute * time.Duration(checkMinutes))
 
 	go func() error {
@@ -45,12 +52,14 @@ func main() {
 		}
 	}()
 
+	// set up a new server
 	serveMux := http.NewServeMux()
 	server := http.Server{
 		Handler: serveMux,
 		Addr:    ":8080",
 	}
 
+	// define api endpoints
 	var apiCfg responses.ApiConfig
 	apiCfg.DB = dbQueries
 	apiCfg.TokenSecret = os.Getenv("SECRET")

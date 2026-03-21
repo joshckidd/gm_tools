@@ -1,3 +1,5 @@
+// internal package that the cli uses to send requests to the rest api
+
 package requests
 
 import (
@@ -14,6 +16,7 @@ import (
 	"net/url"
 )
 
+// call the api and unmarshal the result into the data type provided
 func CallApi[T any](cfg *config.CliConfig, endpoint, method string, payload any) (T, error) {
 	var records T
 
@@ -26,6 +29,7 @@ func CallApi[T any](cfg *config.CliConfig, endpoint, method string, payload any)
 	return records, err
 }
 
+// make a login call to the api
 func LoginUser(cfg *config.CliConfig, username, password string) error {
 	loginResult, err := CallApi[map[string]string](
 		cfg,
@@ -43,6 +47,7 @@ func LoginUser(cfg *config.CliConfig, username, password string) error {
 	return nil
 }
 
+// send a request to the api
 func sendRequest(cfg config.CliConfig, endpoint, method string, payload any) ([]byte, error) {
 	val, err := json.Marshal(payload)
 	if err != nil {
