@@ -52,6 +52,52 @@ All generated rolls and instances will be stored for a limited amount of time so
 
 ## API Documentation
 
+### Authentication
+
+### Endpoints
+
+- /api/rolls
+  Supported methods:
+  - GET - get a list of all rolls for the logged in user
+    - example json response
+  - POST - create a new roll
+    - example json request
+    - example json response
+- /api/users
+  Supported methods:
+  - POST
+- /api/types
+  Supported methods:
+  - GET
+  - POST
+- /api/types/{type_id}
+  Supported methods:
+  - GET
+  - PUT
+  - DELETE
+- /api/custom_fields
+  Supported methods:
+  - GET
+  - POST
+- /api/custom_fields/{custom_field_id}
+  Supported methods:
+  - GET
+  - PUT
+  - DELETE
+- /api/items
+  Supported methods:
+  - GET
+  - POST
+- /api/items/{item_id}
+  Supported methods:
+  - GET
+  - PUT
+  - DELETE
+- /api/instances
+  Supported methods:
+  - GET
+  - POST
+
 ## CLI Documentation
 
 ### Usage
