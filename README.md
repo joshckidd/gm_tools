@@ -89,17 +89,111 @@ Bearer Tokens currently expire in 4 hours and a user must login again. The syste
 Supported methods:
 
 - GET - get a list of all rolls for the logged in user
-  - example json response
+example json response:
+
+``` json
+[
+  {
+    "total_result": -2,
+    "individual_results": [
+      {
+        "type": {
+          "number": 4,
+          "dice": 6,
+          "aggregate": 2,
+          "signum": 0,
+          "exploding": false
+        },
+        "roll_string": "min4d6",
+        "result": 1,
+        "individual_rolls": [
+          1,
+          4,
+          2,
+          5
+        ]
+      },
+      {
+        "type": {
+          "number": 3,
+          "dice": 8,
+          "aggregate": 1,
+          "signum": 1,
+          "exploding": true
+        },
+        "roll_string": "-max3d8e",
+        "result": -3,
+        "individual_rolls": [
+          1,
+          1,
+          3
+        ]
+      }
+    ],
+    "roll_string": "min4d6-max3d8e"
+  }
+]
+```
+
 - POST - create a new roll
-  - example json request
-  - example json response
+example json request:
+
+``` json
+{
+  "roll": "min4d6-max3d8e"
+}
+```
+
+example json response:
+
+``` json
+{
+  "total_result": -2,
+  "individual_results": [
+    {
+      "type": {
+        "number": 4,
+        "dice": 6,
+        "aggregate": 2,
+        "signum": 0,
+        "exploding": false
+      },
+      "roll_string": "min4d6",
+      "result": 1,
+      "individual_rolls": [
+        1,
+        4,
+        2,
+        5
+      ]
+    },
+    {
+      "type": {
+        "number": 3,
+        "dice": 8,
+        "aggregate": 1,
+        "signum": 1,
+        "exploding": true
+      },
+      "roll_string": "-max3d8e",
+      "result": -3,
+      "individual_rolls": [
+        1,
+        1,
+        3
+      ]
+    }
+  ],
+  "roll_string": "min4d6-max3d8e"
+}
+```
 
 #### /api/users
 
 Supported methods:
 
 - POST - create a new user
-  example json request:
+example json request:
 
 ``` json
 {
@@ -108,7 +202,7 @@ Supported methods:
 }
 ```
 
-  example json response:
+example json response:
 
 ```json
 {
@@ -124,7 +218,7 @@ Supported methods:
 Supported methods:
 
 - POST - login a user
-  example json request:
+example json request:
 
 ``` json
 {
@@ -133,7 +227,7 @@ Supported methods:
 }
 ```
 
-  example json response:
+example json response:
 
 ``` json
 {
