@@ -362,7 +362,7 @@ func (cfg *ApiConfig) PostUser(w http.ResponseWriter, r *http.Request) {
 		Username:       inParams.Username,
 		HashedPassword: hashedPassword,
 	})
-	if err.Error() == "pq: duplicate key value violates unique constraint \"users_pkey\"" {
+	if err != nil && err.Error() == "pq: duplicate key value violates unique constraint \"users_pkey\"" {
 		respondWithError(w, 409, fmt.Sprintf("%s is already in use as a username. Please select another.", inParams.Username))
 		return
 	} else if err != nil {

@@ -141,6 +141,9 @@ All generated rolls and instances will be stored for a limited amount of time so
 - login
   - Logs a user in
   - Expects the username and password as arguments
+- register
+  - Creates a new user
+  - Expects the username and password as arguments
 - roll
   - Prints the result of a provided roll string
   - Expects a single argument that is a roll string

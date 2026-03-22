@@ -33,4 +33,4 @@ go.work.sum
 
 *.rest
 *.csv
-gm_tools_*
+/gm_tools_*

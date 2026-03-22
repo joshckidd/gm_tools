@@ -273,6 +273,31 @@ func HandlerExport(s *State, cmd Command) error {
 	return createCSV(s.Cfg, cmd.Args[1], records)
 }
 
+// handler for the register command
+// expects the username and password as arguments
+func HandlerRegister(s *State, cmd Command) error {
+	if len(cmd.Args) < 2 {
+		return errors.New("Register command requires two arguments: username, password")
+	}
+
+	user, err := requests.CallApi[database.User](
+		s.Cfg,
+		"users",
+		"POST",
+		map[string]string{
+			"username": cmd.Args[0],
+			"password": cmd.Args[1],
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Created user %s\n", user.Username)
+
+	return nil
+}
+
 // handler for the login command
 // expects the username and password as arguments
 func HandlerLogin(s *State, cmd Command) error {
@@ -574,6 +599,8 @@ Available Commands:
 			Expects a first command indicating insert, update, or delete
 			Expects a second argument indicating a csv file to be used as source data
   login     Logs a user in
+			Expects the username and password as arguments
+  register	Creates a new user
 			Expects the username and password as arguments
   roll		Prints the result of a provided roll string
         	Expects a single argument that is a roll string
