@@ -50,6 +50,35 @@ All generated rolls and instances will be stored for a limited amount of time so
 
 ## How To Use
 
+### Prerequisites
+
+- go (v. 1.24+) [how to install](https://go.dev/doc/install)
+- postgres (v. 17.9+) [how to install](https://www.postgresql.org/download/)
+- goose (v. 3.26+) [how to install](https://github.com/pressly/goose)
+
+### Setup
+
+- Create a new postgres database fo GM Tools
+- From the root of the repository, go to the ./sql/schema directory: `cd sql/schema/`
+- Run goose to configure the database. Replace the db URL with the one for the db you created: `goose up "postgres://gm_tools:password@localhost:5432/gm_tools"`
+- In the root of the repository, create a .env file. It should look like the example below, updated for your environmeny:
+
+``` text
+DB_URL="postgres://gm_tools:password@localhost:5432/gm_tools?sslmode=disable"
+SECRET="YOUR_SECRET"
+CHECK_MINUTES=5
+KEEP_ROLL_DAYS=1
+API_PORT=8080
+```
+
+- Build and install GM Tools. From the root of the repository, run: `go install ./cmd/*`
+- Run the GM Tools server: `gm_tools_server`
+- Allow this process to continue and open a new terminal tab to use the CLI.
+- Connect to you GM Tools server. Replace the port number with the one in your .env file: `gm_tools_cli connect http:\\localhost:8080\api`
+- Register your user: `gm_tools_cli register {username} {password}`
+- Login your user: `gm_tools_cli login {username} {password}`
+- Use the CLI help to see what else you can do with it: `gm_tools_cli help`
+
 ## API Documentation
 
 ### Authentication
