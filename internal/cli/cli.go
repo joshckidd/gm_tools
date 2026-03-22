@@ -6,6 +6,8 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/google/uuid"
@@ -319,6 +321,24 @@ func HandlerGenerate(s *State, cmd Command) error {
 	return nil
 }
 
+// sets the api URL
+func HandlerConnect(s *State, cmd Command) error {
+	s.Cfg.APIUrl = cmd.Args[0]
+	newAPIUrl, err := url.JoinPath(s.Cfg.APIUrl, "gm_tools")
+	if err != nil {
+		return err
+	}
+
+	_, err = http.Get(newAPIUrl)
+	if err != nil {
+		return err
+	}
+
+	s.Cfg.SetToken()
+	fmt.Printf("Connected to %s\n", s.Cfg.APIUrl)
+	return nil
+}
+
 // used to print a roll
 func printRoll(tot rolls.RollTotalResult) {
 	fmt.Printf("total: %d\n", tot.TotalResult)
@@ -528,6 +548,8 @@ func HandlerHelp(_ *State, _ Command) error {
   gm_tools_cli [command] [arguments]
 
 Available Commands:
+  connect	Sets the API URL for GM Tools
+			Expects one argument that is the API URL
   create	Creates a new record    
 			Expects a first argument that indicates creating either types or custom_fields
 			If a type is being created, a second argument is needed indicating the type name

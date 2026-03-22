@@ -106,6 +106,9 @@ All generated rolls and instances will be stored for a limited amount of time so
 
 ### Available Commands
 
+- connect
+  - Sets the API URL for GM Tools
+  - Expects one argument that is the API URL
 - create
   - Creates a new record
   - Expects a first argument that indicates creating either types or custom_fields

@@ -871,6 +871,13 @@ func GetInstances(w http.ResponseWriter, r *http.Request, user string, cfg *ApiC
 	respondWithJSON(w, 200, instances)
 }
 
+// Used for testing that the service is up
+func (cfg *ApiConfig) GetStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(200)
+	w.Write([]byte("GM Tools is up and running."))
+}
+
 // fill out custom field values for base items
 func fillOutItemFields(baseItem database.Item, r *http.Request, cfg *ApiConfig) (map[string]string, error) {
 	item := map[string]string{
