@@ -346,45 +346,347 @@ example json response:
 "8536934c-79cd-483e-bd35-75615fc191b2"
 ```
 
-- /api/custom_fields
-  Supported methods:
-  - GET - get all custom fields
-    - example json response
-  - POST - create a new custom field
-    - example json request
-    - example json response
-- /api/custom_fields/{custom_field_id}
-  Supported methods:
-  - GET - get a single custom field by id
-    - example json response
-  - PUT - update a single custom field by id
-    - example json request
-    - example json response
-  - DELETE - delete a single custom field by id
-    - example json response
-- /api/items
-  Supported methods:
-  - GET - get all items
-    - example json response
-  - POST - create a new item
-    - example json request
-    - example json response
-- /api/items/{item_id}
-  Supported methods:
-  - GET - get a single item by id
-    - example json response
-  - PUT - update a single item by id
-    - example json request
-    - example json response
-  - DELETE - delete a single item by id
-    - example json response
-- /api/instances
-  Supported methods:
-  - GET - list all instances for the logged in user
-    - example json response
-  - POST - create new instances
-    - example json request
-    - example json response
+#### /api/custom_fields
+
+Supported methods:
+
+- GET - get all custom fields
+
+example json response:
+
+``` json
+[
+  {
+    "id": "aee69dcd-6d88-42ae-a4b1-f6d0b56831e4",
+    "created_at": "2026-03-04T16:44:17.697747Z",
+    "updated_at": "2026-03-04T16:51:26.752141Z",
+    "custom_field_name": "form",
+    "custom_field_type": "picklist",
+    "type_id": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+    "username": "example_user"
+  },
+  {
+    "id": "1d07b5e4-c280-49ef-9f3b-92262e62f4f8",
+    "created_at": "2026-03-17T10:52:16.704807Z",
+    "updated_at": "2026-03-19T14:22:02.664616Z",
+    "custom_field_name": "cypher_type",
+    "custom_field_type": "picklist",
+    "type_id": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+    "username": "example_user"
+  },
+  {
+    "id": "28490ab2-3030-4233-ac11-916aad2e9402",
+    "created_at": "2026-03-19T14:22:28.584535Z",
+    "updated_at": "2026-03-19T14:22:28.584535Z",
+    "custom_field_name": "level",
+    "custom_field_type": "roll",
+    "type_id": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+    "username": "example_user"
+  }
+]
+```
+
+- POST - create a new custom field
+
+example json request:
+
+``` json
+{
+  "type": "artifact",
+  "field_name": "level",
+  "field_type": "roll"
+}
+```
+
+example json response:
+
+``` json
+{
+  "id": "f7cecbd5-513b-4e47-92e9-8a41e3ff7623",
+  "created_at": "2026-03-22T14:16:21.726373Z",
+  "updated_at": "2026-03-22T14:16:21.726373Z",
+  "custom_field_name": "level",
+  "custom_field_type": "roll",
+  "type_id": "a297dc41-3dd5-4c8c-9bb3-847152130d35",
+  "username": "example_user"
+}
+```
+
+#### /api/custom_fields/{custom_field_id}
+
+Supported methods:
+
+- GET - get a single custom field by id
+
+example json response:
+
+``` json
+{
+  "id": "f7cecbd5-513b-4e47-92e9-8a41e3ff7623",
+  "created_at": "2026-03-22T14:16:21.726373Z",
+  "updated_at": "2026-03-22T14:16:21.726373Z",
+  "custom_field_name": "level",
+  "custom_field_type": "roll",
+  "type_id": "a297dc41-3dd5-4c8c-9bb3-847152130d35",
+  "username": "example_user"
+}
+```
+
+- PUT - update a single custom field by id
+
+example json request:
+
+``` json
+{
+  "type": "artifact",
+  "field_name": "form",
+  "field_type": "picklist"
+}
+```
+
+example json response:
+
+``` json
+{
+  "id": "f7cecbd5-513b-4e47-92e9-8a41e3ff7623",
+  "created_at": "2026-03-22T14:16:21.726373Z",
+  "updated_at": "2026-03-22T14:22:03.133038Z",
+  "custom_field_name": "form",
+  "custom_field_type": "picklist",
+  "type_id": "a297dc41-3dd5-4c8c-9bb3-847152130d35",
+  "username": "example_user"
+}
+```
+
+- DELETE - delete a single custom field by id
+
+example json response:
+
+``` json
+"f7cecbd5-513b-4e47-92e9-8a41e3ff7623"
+```
+
+#### /api/items
+
+Supported methods:
+
+- GET - get all items
+
+example json response:
+
+``` json
+[
+  {
+    "created_at": "2026-03-20 11:33:31.640444 +0000 +0000",
+    "cypher_type": "Occultic",
+    "description": "This example is to show example json.",
+    "form": "disc;crystal",
+    "id": "da9f0742-561d-4013-a70c-4146fc5b6803",
+    "level": "1d6+1",
+    "name": "Example Item",
+    "type": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+    "updated_at": "2026-03-22 14:35:20.431641 +0000 +0000",
+    "username": "example_user"
+  },
+  {
+    "created_at": "2026-03-20 11:33:31.645036 +0000 +0000",
+    "cypher_type": "Anoetic",
+    "description": "This example is to show example json.",
+    "form": "complex device",
+    "id": "51769b69-1838-462f-b8a6-8b67e68ba85c",
+    "level": "10",
+    "name": "Another Example Item",
+    "type": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+    "updated_at": "2026-03-22 14:36:35.74311 +0000 +0000",
+    "username": "example_user"
+  }
+]
+```
+
+- POST - create a new item
+
+example json request:
+
+``` json
+{
+  "type": "cypher",
+  "name": "A Third Example Item",
+  "description": "This example is to show example json.",
+  "level": "1d6",
+  "form": "pill;injector",
+  "cypher_type": "Anoetic"
+}
+```
+
+example json response:
+
+``` json
+{
+  "created_at": "2026-03-22 14:29:08.508496 +0000 +0000",
+  "cypher_type": "Anoetic",
+  "description": "This example is to show example json.",
+  "form": "pill;injector",
+  "level": "1d6",
+  "name": "A Third Example Item",
+  "type": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+  "updated_at": "2026-03-22 14:29:08.508496 +0000 +0000",
+  "username": "example_user"
+}
+```
+
+#### /api/items/{item_id}
+
+Supported methods:
+
+- GET - get a single item by id
+
+example json response:
+
+``` json
+{
+  "created_at": "2026-03-22 14:29:08.508496 +0000 +0000",
+  "cypher_type": "Anoetic",
+  "description": "This example is to show example json.",
+  "form": "pill;injector",
+  "id": "20fa8f12-6b92-4b5a-b6d5-049acbbf393a",
+  "level": "1d6",
+  "name": "A Third Example Item",
+  "type": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+  "updated_at": "2026-03-22 14:29:08.508496 +0000 +0000",
+  "username": "example_user"
+}
+```
+
+- PUT - update a single item by id
+
+example json request:
+
+``` json
+{
+  "description": "This example is to show example json.",
+  "name": "A Third Example Item",
+  "type": "cypher",
+  "level": "1d8",
+  "form": "gloves",
+  "cypher_type": "Anoetic"
+}
+```
+
+example json response:
+
+``` json
+{
+  "created_at": "2026-03-22 14:29:08.508496 +0000 +0000",
+  "cypher_type": "Anoetic",
+  "description": "This example is to show example json.",
+  "form": "gloves",
+  "id": "20fa8f12-6b92-4b5a-b6d5-049acbbf393a",
+  "level": "1d8",
+  "name": "A Third Example Item",
+  "type": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+  "updated_at": "2026-03-22 14:29:08.508496 +0000 +0000",
+  "username": "example_user"
+}
+```
+
+- DELETE - delete a single item by id
+
+example json response:
+
+``` json
+"20fa8f12-6b92-4b5a-b6d5-049acbbf393a"
+```
+
+#### /api/instances
+
+Supported methods:
+
+- GET - list all instances for the logged in user
+
+example json response:
+
+``` json
+[
+  {
+    "created_at": "2026-03-22 14:45:22.650358 +0000 +0000",
+    "cypher_type": "Occultic",
+    "description": "This example is to show example json.",
+    "form": "disc",
+    "id": "2bec2592-81d2-40d6-984c-15ff4238994b",
+    "level": "7",
+    "name": "Example Item",
+    "type": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+    "updated_at": "2026-03-22 14:45:22.650358 +0000 +0000",
+    "username": "josh"
+  },
+  {
+    "created_at": "2026-03-22 14:45:22.657104 +0000 +0000",
+    "cypher_type": "Occultic",
+    "description": "This example is to show example json.",
+    "form": "crystal",
+    "id": "86cc4b35-d063-467e-8015-b94fa66ca3a2",
+    "level": "2",
+    "name": "Example Item",
+    "type": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+    "updated_at": "2026-03-22 14:45:22.657104 +0000 +0000",
+    "username": "josh"
+  },
+  {
+    "created_at": "2026-03-22 14:45:22.663789 +0000 +0000",
+    "cypher_type": "Anoetic",
+    "description": "This example is to show example json.",
+    "form": "complex device",
+    "id": "a3081cf4-b7c1-4dde-8a55-9d1556aa2c4f",
+    "level": "10",
+    "name": "Another Example Item",
+    "type": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+    "updated_at": "2026-03-22 14:45:22.663789 +0000 +0000",
+    "username": "josh"
+  }
+]
+```
+
+- POST - create new instances
+
+example json request:
+
+``` json
+{
+  "type": "cypher",
+  "number": "1d6"
+}
+```
+
+example json response:
+
+``` json
+[
+  {
+    "cypher_type": "Occultic",
+    "description": "This example is to show example json.",
+    "form": "disc",
+    "id": "2bec2592-81d2-40d6-984c-15ff4238994b",
+    "level": "7",
+    "name": "Example Item"
+  },
+  {
+    "cypher_type": "Occultic",
+    "description": "This example is to show example json.",
+    "form": "crystal",
+    "id": "86cc4b35-d063-467e-8015-b94fa66ca3a2",
+    "level": "2",
+    "name": "Example Item"
+  },
+  {
+    "cypher_type": "Anoetic",
+    "description": "This example is to show example json.",
+    "form": "complex device",
+    "id": "a3081cf4-b7c1-4dde-8a55-9d1556aa2c4f",
+    "level": "10",
+    "name": "Another Example Item"
+  }
+]
+```
 
 ## CLI Documentation
 
