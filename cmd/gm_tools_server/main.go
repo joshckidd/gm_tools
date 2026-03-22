@@ -24,6 +24,7 @@ func main() {
 	dbURL := os.Getenv("DB_URL")
 	checkMinutes, _ := strconv.Atoi(os.Getenv("CHECK_MINUTES"))
 	keepRollDays, _ := strconv.Atoi(os.Getenv("KEEP_ROLL_DAYS"))
+	apiPort := fmt.Sprintf(":%v", os.Getenv("API_PORT"))
 
 	// connect to the postgres database
 	db, err := sql.Open("postgres", dbURL)
@@ -56,7 +57,7 @@ func main() {
 	serveMux := http.NewServeMux()
 	server := http.Server{
 		Handler: serveMux,
-		Addr:    ":8080",
+		Addr:    apiPort,
 	}
 
 	// define api endpoints

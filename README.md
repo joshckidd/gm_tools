@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a tool for Game Masters running Table Top Role Playing Games. It will generate rolls, store items of any kind (e.g. monsters, magic items) in a database, and select random items based on criteria provided.
+This is a tool for Game Masters running Table Top Role Playing Games. It will generate rolls, store items of any kind (e.g. monsters, magic items) in a database, and select random items based on criteria provided. There are two parts to GM Tools, a REST API server and a command line interface. The CLI interfaces with the API. It was constructed this way so that other front ends could be built for API, such as a web front end.
 
 I created this tool specifically to help me in running games using the [Cypher System](https://cypher-system.com) created by [Monte Cook Games](https://www.montecookgames.com). Most of the examples that I will use below reference the Cypher System, but it could be used with any system where you would want to generate random items.
 
@@ -54,49 +54,151 @@ All generated rolls and instances will be stored for a limited amount of time so
 
 ### Authentication
 
+To authenticate with the GM Tools API, make a call to the /api/login endpoint with a json payload specifying "username" and "password" as in this example:
+
+``` json
+{
+  "password": "1234",
+  "username": "example_user"
+}
+```
+
+The response will include a token to be used in future calls as in this example:
+
+``` json
+{
+  "username": "example_user",
+  "created_at": "2026-02-04T14:46:18.76783Z",
+  "updated_at": "2026-02-04T14:46:18.76783Z",
+  "token": "EXAMPLE_TOKEN"
+}
+```
+
+For calls to any endpoint except /api/users or /api/login, the Bearer Token should be provided in the HTTP headers as:
+
+```text
+Authorization: Bearer EXAMPLE_TOKEN
+```
+
+Bearer Tokens currently expire in 4 hours and a user must login again. The system as it is currently built is intended to be used by a single user. See the Roadmap below for information on how authentication will change to support multiple users.
+
 ### Endpoints
 
-- /api/rolls
-  Supported methods:
-  - GET - get a list of all rolls for the logged in user
-    - example json response
-  - POST - create a new roll
-    - example json request
-    - example json response
-- /api/users
-  Supported methods:
-  - POST
+#### /api/rolls
+
+Supported methods:
+
+- GET - get a list of all rolls for the logged in user
+  - example json response
+- POST - create a new roll
+  - example json request
+  - example json response
+
+#### /api/users
+
+Supported methods:
+
+- POST - create a new user
+  example json request:
+
+``` json
+{
+  "password": "1234",
+  "username": "example_user"
+}
+```
+
+  example json response:
+
+```json
+{
+  "username": "example_user",
+  "created_at": "2026-03-22T13:50:48.540179Z",
+  "updated_at": "2026-03-22T13:50:48.540179Z",
+  "hashed_password": ""
+}
+```
+
+#### /api/login
+
+Supported methods:
+
+- POST - login a user
+  example json request:
+
+``` json
+{
+  "password": "1234",
+  "username": "example_user"
+}
+```
+
+  example json response:
+
+``` json
+{
+  "username": "example_user",
+  "created_at": "2026-02-04T14:46:18.76783Z",
+  "updated_at": "2026-02-04T14:46:18.76783Z",
+  "token": "EXAMPLE_TOKEN"
+}
+```
+
 - /api/types
   Supported methods:
-  - GET
-  - POST
+  - GET - get all types
+    - example json response
+  - POST - create a new type
+    - example json request
+    - example json response
 - /api/types/{type_id}
   Supported methods:
-  - GET
-  - PUT
-  - DELETE
+  - GET - get a single type by id
+    - example json response
+  - PUT - update a single type by id
+    - example json request
+    - example json response
+  - DELETE - delete a single type by id
+    - example json response
 - /api/custom_fields
   Supported methods:
-  - GET
-  - POST
+  - GET - get all custom fields
+    - example json response
+  - POST - create a new custom field
+    - example json request
+    - example json response
 - /api/custom_fields/{custom_field_id}
   Supported methods:
-  - GET
-  - PUT
-  - DELETE
+  - GET - get a single custom field by id
+    - example json response
+  - PUT - update a single custom field by id
+    - example json request
+    - example json response
+  - DELETE - delete a single custom field by id
+    - example json response
 - /api/items
   Supported methods:
-  - GET
-  - POST
+  - GET - get all items
+    - example json response
+  - POST - create a new item
+    - example json request
+    - example json response
 - /api/items/{item_id}
   Supported methods:
-  - GET
-  - PUT
-  - DELETE
+  - GET - get a single item by id
+    - example json response
+  - PUT - update a single item by id
+    - example json request
+    - example json response
+  - DELETE - delete a single item by id
+    - example json response
 - /api/instances
   Supported methods:
-  - GET
-  - POST
+  - GET - list all instances for the logged in user
+    - example json response
+  - POST - create new instances
+    - example json request
+    - example json response
 
 ## CLI Documentation
 
