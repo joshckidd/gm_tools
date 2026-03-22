@@ -89,6 +89,7 @@ Bearer Tokens currently expire in 4 hours and a user must login again. The syste
 Supported methods:
 
 - GET - get a list of all rolls for the logged in user
+
 example json response:
 
 ``` json
@@ -136,6 +137,7 @@ example json response:
 ```
 
 - POST - create a new roll
+
 example json request:
 
 ``` json
@@ -193,6 +195,7 @@ example json response:
 Supported methods:
 
 - POST - create a new user
+
 example json request:
 
 ``` json
@@ -218,6 +221,7 @@ example json response:
 Supported methods:
 
 - POST - login a user
+
 example json request:
 
 ``` json
@@ -238,22 +242,110 @@ example json response:
 }
 ```
 
-- /api/types
-  Supported methods:
-  - GET - get all types
-    - example json response
-  - POST - create a new type
-    - example json request
-    - example json response
-- /api/types/{type_id}
-  Supported methods:
-  - GET - get a single type by id
-    - example json response
-  - PUT - update a single type by id
-    - example json request
-    - example json response
-  - DELETE - delete a single type by id
-    - example json response
+#### /api/types
+  
+Supported methods:
+
+- GET - get all types
+
+example json response:
+
+``` json
+[
+  {
+    "id": "bb42e1c6-a5b5-442b-bd2b-fd37b00b899c",
+    "created_at": "2026-03-04T16:43:59.692374Z",
+    "updated_at": "2026-03-06T13:42:58.192979Z",
+    "type_name": "cypher",
+    "username": "example_user"
+  },
+  {
+    "id": "a297dc41-3dd5-4c8c-9bb3-847152130d35",
+    "created_at": "2026-03-17T10:51:39.222392Z",
+    "updated_at": "2026-03-18T10:23:14.650006Z",
+    "type_name": "artifact",
+    "username": "example_user"
+  },
+  {
+    "id": "8536934c-79cd-483e-bd35-75615fc191b2",
+    "created_at": "2026-03-22T14:00:35.388911Z",
+    "updated_at": "2026-03-22T14:00:35.388911Z",
+    "type_name": "oddity",
+    "username": "example_user"
+  }
+]
+```
+
+- POST - create a new type
+
+example json request:
+
+``` json
+{
+  "type": "oddity"
+}
+```
+
+example json response:
+
+``` json
+{
+  "id": "8536934c-79cd-483e-bd35-75615fc191b2",
+  "created_at": "2026-03-22T14:00:35.388911Z",
+  "updated_at": "2026-03-22T14:00:35.388911Z",
+  "type_name": "oddity",
+  "username": "example_user"
+}
+```
+
+#### /api/types/{type_id}
+
+Supported methods:
+
+- GET - get a single type by id
+
+example json response:
+
+``` json
+{
+  "id": "8536934c-79cd-483e-bd35-75615fc191b2",
+  "created_at": "2026-03-22T14:00:35.388911Z",
+  "updated_at": "2026-03-22T14:00:35.388911Z",
+  "type_name": "oddity",
+  "username": "example_user"
+}
+```
+
+- PUT - update a single type by id
+
+example json request:
+
+``` json
+{
+  "type": "monster"
+}
+```
+
+example json response:
+
+``` json
+{
+  "id": "8536934c-79cd-483e-bd35-75615fc191b2",
+  "created_at": "2026-03-22T14:00:35.388911Z",
+  "updated_at": "2026-03-22T14:08:08.030442Z",
+  "type_name": "monster",
+  "username": "example_user"
+}
+```
+
+- DELETE - delete a single type by id
+
+example json response:
+
+``` json
+"8536934c-79cd-483e-bd35-75615fc191b2"
+```
+
 - /api/custom_fields
   Supported methods:
   - GET - get all custom fields
